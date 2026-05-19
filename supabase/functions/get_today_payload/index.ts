@@ -103,15 +103,12 @@ function buildTodayPayloadFromRows(
     wind: gradeWind(windMs),
     pm25: gradePm25(currentRow.pm25)
   };
-  const grade = getGradeFromScore(
-    Math.round(
-      (gradeScore(metricGrades.rainProbability) +
-        gradeScore(metricGrades.rainAmount) +
-        gradeScore(metricGrades.wind) +
-        gradeScore(metricGrades.pm25)) /
-        4
-    )
-  );
+  const grade = lowestGrade([
+    metricGrades.rainProbability,
+    metricGrades.rainAmount,
+    metricGrades.wind,
+    metricGrades.pm25
+  ]);
   const morningGrade = gradePeriod(todayRows, 6, 11);
   const afternoonGrade = gradePeriod(todayRows, 12, 17);
   const eveningGrade = gradePeriod(todayRows, 18, 23);
@@ -331,8 +328,10 @@ function gradePeriod(rows: ForecastRow[], startHour: number, endHour: number): G
   });
   if (!periodRows.length) return "good";
 
-  const score = periodRows.reduce((sum, row) => sum + gradeScore(gradeForecastRow(row)), 0) / periodRows.length;
-  return getGradeFromScore(Math.round(score));
+  return periodRows.reduce(
+    (worst, row) => lowestGrade([worst, gradeForecastRow(row)]),
+    "gorgeous" as GradeCode
+  );
 }
 
 function gradeForecastRow(row: ForecastRow): GradeCode {
@@ -341,7 +340,8 @@ function gradeForecastRow(row: ForecastRow): GradeCode {
   const wind = gradeWind(windKmhToMs(row.windSpeedKmh));
   const dust = gradePm25(row.pm25);
 
-  return getGradeFromScore(Math.round((gradeScore(rain) + gradeScore(amount) + gradeScore(wind) + gradeScore(dust)) / 4));
+  // 외출 지수는 평균이 아니라 가장 불리한 지표 기준 (비 100%인데 강수량 0mm만으로 상향되지 않도록)
+  return lowestGrade([rain, amount, wind, dust]);
 }
 
 function findNearestRow(rows: ForecastRow[], now: Date): ForecastRow {
@@ -398,23 +398,6 @@ function gradePm25(value: number | null): GradeCode {
   if (value <= 35) return "great";
   if (value <= 75) return "good";
   return "uhm";
-}
-
-function getGradeFromScore(score: number): GradeCode {
-  if (score >= 85) return "gorgeous";
-  if (score >= 70) return "great";
-  if (score >= 50) return "good";
-  return "uhm";
-}
-
-function gradeScore(grade: GradeCode): number {
-  const scores: Record<GradeCode, number> = {
-    gorgeous: 94,
-    great: 78,
-    good: 58,
-    uhm: 35
-  };
-  return scores[grade];
 }
 
 function lowestGrade(grades: GradeCode[]): GradeCode {
