@@ -180,7 +180,7 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                   <p className="metricDualCardTitle">{metric.label}</p>
                   {valuesMatch ? (
                     <strong
-                      className="metricDualValue"
+                      className="metricDualValueCurrent"
                       style={{ color: currentTone?.color ?? colors.textPrimary }}
                     >
                       {metric.current.value}
@@ -188,17 +188,20 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                   ) : (
                     <div className="metricDualValues">
                       <strong
-                        className="metricDualValue metricDualValueCurrent"
+                        className="metricDualValueCurrent"
                         style={{ color: currentTone?.color ?? colors.textPrimary }}
                       >
                         {metric.current.value}
                       </strong>
-                      <strong
-                        className="metricDualValue metricDualValuePeak"
-                        style={{ color: peakTone?.color ?? colors.textPrimary }}
-                      >
-                        {metric.peak.value}
-                      </strong>
+                      <div className="metricDualPeakBlock">
+                        <span className="metricDualPeakLabel">오늘 최대</span>
+                        <span
+                          className="metricDualPeakValue"
+                          style={{ color: peakTone?.color ?? colors.textSecondary }}
+                        >
+                          {metric.peak.value}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </article>
