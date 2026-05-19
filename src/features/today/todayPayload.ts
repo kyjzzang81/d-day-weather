@@ -99,8 +99,7 @@ type CachedTodayPayload = {
   categoriesKey: string;
 };
 
-const TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v2";
-const LEGACY_TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v1";
+const TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v1";
 const TODAY_PAYLOAD_CACHE_TTL_MS = 30 * 60 * 1000;
 
 export const mockTodayPayload: TodayPayload = {
@@ -206,7 +205,6 @@ export function clearTodayPayloadCache(): void {
   if (typeof window === "undefined") return;
 
   window.localStorage.removeItem(TODAY_PAYLOAD_CACHE_KEY);
-  window.localStorage.removeItem(LEGACY_TODAY_PAYLOAD_CACHE_KEY);
 }
 
 export async function loadTodayPayload(
