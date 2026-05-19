@@ -1,0 +1,1206 @@
+:root {
+  --color-text: #1f2933;
+  --color-text-secondary: #64707d;
+  --color-text-tertiary: #9aa5b1;
+  --color-background: #f7f8ff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f5ff;
+  --color-border: #e4e7f5;
+  --color-primary: #5260fe;
+  --color-primary-soft: #e7e9ff;
+  --color-purple: #c871fd;
+  --color-purple-soft: #f5e7ff;
+  --color-positive: #42a339;
+  --color-positive-soft: #e8ffe5;
+  --color-warn: #ff8f2e;
+  --color-warn-soft: #fff0e4;
+  --color-negative: #ff5b5b;
+  --shadow-card: 0 0.5rem 1.5rem rgba(31, 41, 51, 0.07);
+  --shadow-floating: 0 1rem 2.5rem rgba(31, 41, 51, 0.13);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard,
+    "Noto Sans KR", system-ui, sans-serif;
+  color: var(--color-text);
+  background: var(--color-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(82, 96, 254, 0.12),
+      transparent 34rem
+    ),
+    radial-gradient(
+      circle at 95% 12%,
+      rgba(200, 113, 253, 0.12),
+      transparent 20rem
+    ),
+    var(--color-background);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.appViewport {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mobileShell {
+  width: 100%;
+  max-width: 432px;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem;
+  overflow: hidden;
+}
+
+.screenStack {
+  display: grid;
+  gap: 1.25rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 1.5rem;
+  scrollbar-width: none;
+}
+
+.screenStack::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionBlock {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sectionTitleRow h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 999rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.reasonList {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.reasonList li::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999rem;
+  background: var(--color-primary);
+  display: inline-block;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.weatherHeroCard {
+  min-height: 176px;
+  padding: 1.25rem 1rem;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  max-width: 232px;
+}
+
+.heroGradeTitle {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 2rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+}
+
+.heroImageSlot {
+  position: absolute;
+  right: 16px;
+  top: 32px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 30% 24%,
+      rgba(255, 255, 255, 0.42),
+      transparent 1rem
+    ),
+    linear-gradient(135deg, var(--color-primary-soft), var(--color-primary));
+  color: var(--color-text);
+  display: block;
+  box-shadow: var(--shadow-floating);
+  transform-origin: 50% 70%;
+  animation: faceBob 4.8s ease-in-out infinite;
+}
+
+.heroFace::after {
+  content: "";
+  position: absolute;
+  inset: 8px 16px auto auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 999rem;
+  background: rgba(255, 255, 255, 0.24);
+  filter: blur(0.25rem);
+}
+
+.heroEyes {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  width: 36px;
+  height: 8px;
+  transform: translateX(-50%);
+  animation: eyesLookTogether 6.2s ease-in-out infinite;
+}
+
+.heroEye {
+  position: absolute;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999rem;
+  background: var(--color-text);
+  transform-origin: center;
+  animation: eyeBlink 4.2s ease-in-out infinite;
+}
+
+.heroEyeLeft {
+  left: 0;
+}
+
+.heroEyeRight {
+  right: 0;
+  animation-delay: 0.04s;
+}
+
+.heroMouth {
+  position: absolute;
+  left: 50%;
+  top: 44px;
+  width: 20px;
+  height: 12px;
+  border-bottom: 2px solid var(--color-text);
+  border-radius: 0 0 999rem 999rem;
+  transform: translateX(-50%);
+  animation: happySmile 4.8s ease-in-out infinite;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.miniCard,
+.flowCard,
+.activityCard,
+.ddayMiniCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+.miniCard {
+  min-height: 72px;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.miniCard p {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.miniCard strong {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.dayFlowTimeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
+  min-height: 80px;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  padding: 1rem 0.75rem 0.75rem;
+}
+
+.dayFlowRail {
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  top: 25%;
+  height: 1px;
+  border-radius: 999rem;
+  background: linear-gradient(
+    90deg,
+    var(--color-purple-soft),
+    var(--color-primary-soft),
+    var(--color-positive-soft)
+  );
+}
+
+.dayFlowPoint {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.dayFlowDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999rem;
+  border: 2px solid var(--color-surface);
+}
+
+.dayFlowLabel {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.dayFlowValue {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.activityScroller {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  overflow: visible;
+}
+
+.activityCard {
+  min-height: 144px;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+}
+
+.activityImageSlot,
+.softIllustration {
+  width: 40px;
+  height: 32px;
+  border-radius: 0.75rem;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 46%,
+      var(--color-positive) 47% 58%,
+      transparent 59%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-primary-soft),
+      var(--color-positive-soft)
+    );
+}
+
+img.activityImageSlot {
+  display: block;
+  object-fit: contain;
+  background: transparent;
+}
+
+.softIllustration {
+  width: 40px;
+  height: 40px;
+  border-radius: 1rem;
+}
+
+.activityCard h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  word-break: keep-all;
+}
+
+.activityCard p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  word-break: keep-all;
+}
+
+.ddayMiniCard {
+  border-radius: 1rem;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.discoverCtaCard {
+  border-radius: 1rem;
+  padding: 1rem;
+  background:
+    radial-gradient(
+      circle at 86% 18%,
+      rgba(200, 113, 253, 0.18),
+      transparent 5rem
+    ),
+    linear-gradient(135deg, var(--color-primary-soft), var(--color-surface));
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.discoverCtaCard p {
+  margin: 0 0 0.25rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+
+.discoverCtaCard strong {
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.ddayMiniCard p,
+.ddayMiniCard span {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.ddayMiniCard strong {
+  display: block;
+  margin: 0.25rem 0;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.sheetHandle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999rem;
+  background: var(--color-border);
+  margin: 0 auto 1rem;
+}
+
+.sheetOverlay[data-state="open"] {
+  animation: sheetOverlayIn 180ms ease-out both;
+}
+
+.sheetOverlay[data-state="closing"] {
+  animation: sheetOverlayOut 260ms ease-in both;
+}
+
+.sheetPanel[data-state="open"] {
+  animation: bottomSheetIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.sheetPanel[data-state="closing"] {
+  animation: bottomSheetOut 240ms cubic-bezier(0.4, 0, 1, 1) both;
+  will-change: transform, opacity;
+}
+
+.sheetStack,
+.buttonStack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sheetStack {
+  max-height: min(68vh, 640px);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.sheetMetricRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+}
+
+.sheetMetricRow strong {
+  color: var(--color-text);
+}
+
+.metricDecisionSummary {
+  border-radius: 1rem;
+  background:
+    radial-gradient(
+      circle at 88% 18%,
+      rgba(82, 96, 254, 0.16),
+      transparent 5rem
+    ),
+    var(--color-surface-muted);
+  padding: 1rem;
+}
+
+.metricDecisionSummary p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+
+.metricDetailGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.metricDetailCard {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+}
+
+.metricDetailCard > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.metricDetailCard span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.metricDetailCard strong {
+  color: var(--color-primary);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.metricDetailCard p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.compactInfoSection {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+  padding: 0.75rem;
+}
+
+.compactInfoSection h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.supportMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.supportMetricGrid div {
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.supportMetricGrid span,
+.activityImpactRow span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.supportMetricGrid strong {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+.prepHintList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.prepHintList span {
+  border-radius: 999rem;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+
+.activityImpactList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.activityImpactRow {
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.activityImpactRow div {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.activityImpactRow strong {
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.hourlyWeatherRow {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+  padding: 0.75rem;
+}
+
+.hourlyWeatherMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hourlyWeatherMain strong {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.hourlyWeatherMain span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-align: right;
+}
+
+.hourlyWeatherMeta {
+  display: grid;
+  grid-template-columns: minmax(5rem, 1fr) repeat(4, auto);
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.activityDetailHero {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+  padding: 1rem;
+}
+
+.activityDetailHero p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+
+.activityDetailSection {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+}
+
+.activityDetailSection h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.activityDetailSection ul {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.activityTimeList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.activityTimeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-muted);
+  padding: 0.75rem;
+}
+
+.activityTimeRow > span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.flowGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.discoverIntroBlock {
+  padding: 0.25rem 0.25rem 0;
+}
+
+.flowCardButton {
+  position: relative;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 1rem;
+  min-height: 112px;
+  padding: 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.flowCardButton[data-active="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.flowCardCopy {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 0.25rem;
+  max-width: calc(100% - 120px);
+  position: relative;
+  z-index: 1;
+}
+
+.flowCardCopy strong {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+.flowCardCopy span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.flowCardCopy em {
+  margin-top: 0.25rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.flowImageSlot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 128px;
+  height: 96px;
+  border-radius: 0;
+  display: block;
+  object-fit: contain;
+  object-position: right bottom;
+  background: transparent;
+  overflow: hidden;
+}
+
+.chipGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.discoverSheetContent {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bottomTabLink {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottomTabItem {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+}
+
+.bottomTabIcon {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.bottomTabItem[data-active="true"] .bottomTabIcon {
+  border-color: var(--color-primary-soft);
+}
+
+.sidebarFrame {
+  width: 100%;
+  max-width: 432px;
+  height: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sidebarPanel {
+  width: min(336px, 84vw);
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  animation: sidebarIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.sidebarPanel::-webkit-scrollbar {
+  display: none;
+}
+
+.activityPreferencesHeader {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0 0.5rem;
+}
+
+.activityPreferencesScreen {
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.activityPreferencesIntro {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.activityPreferencesTitle {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.activityPreferencesHint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+
+.activityPreferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.activityPreferenceCard {
+  position: relative;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 1rem;
+  padding: 1rem 0.5rem;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.activityPreferenceCard[data-selected="true"] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(172, 0, 235, 0.064);
+}
+
+.activityPreferenceImageWrapper {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+}
+
+.activityPreferenceImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.activityPreferenceLabel {
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.activityPreferenceCheck {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999rem;
+  background: var(--color-positive);
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+}
+
+.activityPreferencesFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(247, 248, 255, 0) 0%,
+    var(--color-background) 32%
+  );
+  padding: 0.5rem 0 0.75rem;
+}
+
+.sidebarContent {
+  min-height: 100%;
+  padding: 1.5rem 1rem;
+  display: grid;
+  align-content: start;
+}
+
+.sidebarHeader {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sidebarCloseButton {
+  width: 32px;
+  height: 32px;
+  box-shadow: none;
+}
+
+.drawerLink {
+  min-height: 48px;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+
+.skeletonBlock {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 25%,
+    var(--color-border) 37%,
+    var(--color-surface-muted) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.35s ease-in-out infinite;
+}
+
+.srOnly {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  padding: 0;
+  margin: -0.25rem;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes sheetOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes bottomSheetIn {
+  from {
+    opacity: 0.96;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottomSheetOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.96;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sidebarIn {
+  from {
+    opacity: 0.94;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetOverlay[data-state],
+  .sheetPanel[data-state],
+  .sidebarPanel {
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes faceBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-2.5deg) scale(1.015);
+  }
+  50% {
+    transform: translateY(4px) rotate(1.8deg) scale(1.025);
+  }
+  75% {
+    transform: translateY(-4px) rotate(2.5deg) scale(1.01);
+  }
+}
+
+@keyframes eyeBlink {
+  0%,
+  7%,
+  38%,
+  45%,
+  78%,
+  100% {
+    transform: translateX(0) scaleY(1);
+  }
+  40%,
+  42% {
+    transform: translateX(0) scaleY(0.12);
+  }
+  80%,
+  82% {
+    transform: translateX(0) scaleY(0.12);
+  }
+}
+
+@keyframes eyesLookTogether {
+  0%,
+  18%,
+  100% {
+    transform: translateX(-50%);
+  }
+  32%,
+  48% {
+    transform: translateX(calc(-50% - 4px));
+  }
+  63%,
+  78% {
+    transform: translateX(calc(-50% + 4px));
+  }
+}
+
+@keyframes happySmile {
+  0%,
+  100% {
+    width: 20px;
+    height: 12px;
+    border-bottom-width: 2px;
+    transform: translateX(-50%) translateY(0);
+  }
+  42%,
+  62% {
+    width: 24px;
+    height: 16px;
+    border-bottom-width: 2px;
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+@media (max-width: 380px) {
+  .dayFlow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
