@@ -240,20 +240,36 @@ async function resolveCoordinates(): Promise<Coordinates> {
     throw new LocationUnavailableError("위치 정보는 HTTPS 또는 localhost에서만 사용할 수 있어요.");
   }
 
-  const position =
-    (await getCurrentPosition({ enableHighAccuracy: true, maximumAge: 5 * 60 * 1000, timeout: 10000 })) ??
-    (await getCurrentPosition({ enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 6000 }));
+  const mobile = isLikelyMobileDevice();
+  const attempts: GeolocationRequestOptions[] = mobile
+    ? [
+        // 모바일: Wi-Fi·셀 기반 위치가 실내에서 더 빨리 잡힘
+        { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 15000 },
+        { enableHighAccuracy: true, maximumAge: 5 * 60 * 1000, timeout: 20000 }
+      ]
+    : [
+        { enableHighAccuracy: true, maximumAge: 5 * 60 * 1000, timeout: 10000 },
+        { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 8000 }
+      ];
 
-  if (!position) {
-    throw new LocationUnavailableError(
-      "현재 위치를 확인하지 못했어요. 브라우저 설정에서 이 사이트의 위치 권한을 허용한 뒤 다시 시도해주세요."
-    );
+  let lastErrorCode: number | undefined;
+
+  for (const options of attempts) {
+    const result = await requestCurrentPosition(options);
+    if (result.position) {
+      return {
+        lat: result.position.coords.latitude,
+        lon: result.position.coords.longitude
+      };
+    }
+
+    lastErrorCode = result.errorCode ?? lastErrorCode;
+    if (result.errorCode === 1) {
+      break;
+    }
   }
 
-  return {
-    lat: position.coords.latitude,
-    lon: position.coords.longitude
-  };
+  throw buildLocationUnavailableError(lastErrorCode, mobile);
 }
 
 type GeolocationRequestOptions = {
@@ -262,18 +278,62 @@ type GeolocationRequestOptions = {
   timeout: number;
 };
 
-function getCurrentPosition(options: GeolocationRequestOptions): Promise<GeolocationPosition | null> {
+type GeolocationRequestResult = {
+  position: GeolocationPosition | null;
+  errorCode?: number;
+};
+
+function isLikelyMobileDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+
+  const ua = navigator.userAgent;
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) {
+    return true;
+  }
+
+  return navigator.maxTouchPoints > 1 && window.matchMedia("(pointer: coarse)").matches;
+}
+
+function buildLocationUnavailableError(errorCode: number | undefined, mobile: boolean): LocationUnavailableError {
+  const inAppBrowserHint = mobile
+    ? " 카카오톡·인스타 등 앱 안 브라우저라면 Safari나 Chrome으로 링크를 열어주세요."
+    : "";
+
+  switch (errorCode) {
+    case 1:
+      return new LocationUnavailableError(
+        `위치 권한이 꺼져 있어요. 휴대폰 설정에서 이 사이트의 위치를 허용한 뒤 다시 시도해주세요.${inAppBrowserHint}`
+      );
+    case 2:
+      return new LocationUnavailableError(
+        "GPS 신호를 잡지 못했어요. 설정에서 위치 서비스가 켜져 있는지 확인하거나, 잠시 후 다시 시도해주세요."
+      );
+    case 3:
+      return new LocationUnavailableError(
+        "위치 확인이 시간 초과됐어요. Wi-Fi·GPS를 켠 뒤 다시 불러오기를 눌러주세요."
+      );
+    default:
+      return new LocationUnavailableError(
+        `현재 위치를 확인하지 못했어요. 브라우저에서 이 사이트의 위치 권한을 허용한 뒤 다시 시도해주세요.${inAppBrowserHint}`
+      );
+  }
+}
+
+function requestCurrentPosition(options: GeolocationRequestOptions): Promise<GeolocationRequestResult> {
   return new Promise((resolve) => {
-    const timeout = window.setTimeout(() => resolve(null), options.timeout + 500);
+    const failSafeTimer = window.setTimeout(
+      () => resolve({ position: null, errorCode: 3 }),
+      options.timeout + 500
+    );
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        window.clearTimeout(timeout);
-        resolve(position);
+        window.clearTimeout(failSafeTimer);
+        resolve({ position });
       },
-      () => {
-        window.clearTimeout(timeout);
-        resolve(null);
+      (error) => {
+        window.clearTimeout(failSafeTimer);
+        resolve({ position: null, errorCode: error.code });
       },
       options
     );
