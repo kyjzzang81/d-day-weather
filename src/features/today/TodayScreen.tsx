@@ -103,7 +103,7 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
 
       <main className="screenStack">
         {isLoading ? (
-          <LoadingSkeleton rows={4} message="실시간 날씨를 불러오고 있어요." />
+          <LoadingSkeleton rows={4} message="위치와 날씨를 확인하고 있어요. 실내에서는 조금 더 걸릴 수 있어요." />
         ) : (
           <>
             {loadError ? (

@@ -243,9 +243,12 @@ async function resolveCoordinates(): Promise<Coordinates> {
   const mobile = isLikelyMobileDevice();
   const attempts: GeolocationRequestOptions[] = mobile
     ? [
-        // 모바일: Wi-Fi·셀 기반 위치가 실내에서 더 빨리 잡힘
-        { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 15000 },
-        { enableHighAccuracy: true, maximumAge: 5 * 60 * 1000, timeout: 20000 }
+        // 1) OS에 캐시된 최근 위치(지도 등)를 먼저 사용
+        { enableHighAccuracy: false, maximumAge: 60 * 60 * 1000, timeout: 8000 },
+        // 2) Wi-Fi·셀 기반 신규 측정
+        { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 25000 },
+        // 3) GPS 고정밀
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
       ]
     : [
         { enableHighAccuracy: true, maximumAge: 5 * 60 * 1000, timeout: 10000 },
@@ -257,10 +260,7 @@ async function resolveCoordinates(): Promise<Coordinates> {
   for (const options of attempts) {
     const result = await requestCurrentPosition(options);
     if (result.position) {
-      return {
-        lat: result.position.coords.latitude,
-        lon: result.position.coords.longitude
-      };
+      return positionToCoordinates(result.position);
     }
 
     lastErrorCode = result.errorCode ?? lastErrorCode;
@@ -269,7 +269,25 @@ async function resolveCoordinates(): Promise<Coordinates> {
     }
   }
 
+  if (mobile) {
+    const watched = await watchForPosition({
+      enableHighAccuracy: false,
+      maximumAge: 5 * 60 * 1000,
+      timeout: 35000
+    });
+    if (watched) {
+      return positionToCoordinates(watched);
+    }
+  }
+
   throw buildLocationUnavailableError(lastErrorCode, mobile);
+}
+
+function positionToCoordinates(position: GeolocationPosition): Coordinates {
+  return {
+    lat: position.coords.latitude,
+    lon: position.coords.longitude
+  };
 }
 
 type GeolocationRequestOptions = {
@@ -321,19 +339,49 @@ function buildLocationUnavailableError(errorCode: number | undefined, mobile: bo
 
 function requestCurrentPosition(options: GeolocationRequestOptions): Promise<GeolocationRequestResult> {
   return new Promise((resolve) => {
+    let settled = false;
+    const settle = (result: GeolocationRequestResult) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(failSafeTimer);
+      resolve(result);
+    };
+
+    // iOS는 timeout 콜백이 늦게 오는 경우가 있어 여유를 둠
     const failSafeTimer = window.setTimeout(
-      () => resolve({ position: null, errorCode: 3 }),
-      options.timeout + 500
+      () => settle({ position: null, errorCode: 3 }),
+      options.timeout + 3000
     );
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        window.clearTimeout(failSafeTimer);
-        resolve({ position });
-      },
-      (error) => {
-        window.clearTimeout(failSafeTimer);
-        resolve({ position: null, errorCode: error.code });
+      (position) => settle({ position }),
+      (error) => settle({ position: null, errorCode: error.code }),
+      options
+    );
+  });
+}
+
+function watchForPosition(options: GeolocationRequestOptions): Promise<GeolocationPosition | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+    let watchId = 0;
+
+    const settle = (position: GeolocationPosition | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(failSafeTimer);
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+      resolve(position);
+    };
+
+    const failSafeTimer = window.setTimeout(() => settle(null), options.timeout + 3000);
+
+    watchId = navigator.geolocation.watchPosition(
+      (position) => settle(position),
+      () => {
+        // watch는 타임아웃까지 재시도
       },
       options
     );
