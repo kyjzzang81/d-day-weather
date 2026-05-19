@@ -185,18 +185,26 @@ a {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 30% 24%,
-      rgba(255, 255, 255, 0.42),
-      transparent 1rem
-    ),
-    linear-gradient(135deg, var(--color-primary-soft), var(--color-primary));
   color: var(--color-text);
   display: block;
   box-shadow: var(--shadow-floating);
   transform-origin: 50% 70%;
+}
+
+.heroFace[data-grade="gorgeous"] {
   animation: faceBob 4.8s ease-in-out infinite;
+}
+
+.heroFace[data-grade="great"] {
+  animation: faceBob 5.2s ease-in-out infinite;
+}
+
+.heroFace[data-grade="good"] {
+  animation: faceBobSubtle 5.6s ease-in-out infinite;
+}
+
+.heroFace[data-grade="uhm"] {
+  animation: faceBobSubtle 6.5s ease-in-out infinite;
 }
 
 .heroFace::after {
@@ -249,7 +257,39 @@ a {
   border-bottom: 2px solid var(--color-text);
   border-radius: 0 0 999rem 999rem;
   transform: translateX(-50%);
+}
+
+.heroFace[data-grade="gorgeous"] .heroMouth {
   animation: happySmile 4.8s ease-in-out infinite;
+}
+
+.heroFace[data-grade="great"] .heroMouth {
+  width: 18px;
+  height: 10px;
+  top: 45px;
+  animation: mildSmile 5s ease-in-out infinite;
+}
+
+.heroFace[data-grade="good"] .heroMouth {
+  top: 47px;
+  width: 14px;
+  height: 0;
+  border-radius: 0;
+}
+
+.heroFace[data-grade="uhm"] .heroEyes {
+  top: 34px;
+  animation: eyesLookDown 5.2s ease-in-out infinite;
+}
+
+.heroFace[data-grade="uhm"] .heroMouth {
+  top: 50px;
+  width: 18px;
+  height: 10px;
+  border-bottom: none;
+  border-top: 2px solid var(--color-text);
+  border-radius: 999rem 999rem 0 0;
+  animation: worriedMouth 5.5s ease-in-out infinite;
 }
 
 .metricGrid {
@@ -1126,7 +1166,11 @@ img.activityImageSlot {
 @media (prefers-reduced-motion: reduce) {
   .sheetOverlay[data-state],
   .sheetPanel[data-state],
-  .sidebarPanel {
+  .sidebarPanel,
+  .heroFace,
+  .heroFace .heroMouth,
+  .heroFace .heroEyes,
+  .heroFace .heroEye {
     animation-duration: 1ms;
   }
 }
@@ -1196,6 +1240,52 @@ img.activityImageSlot {
     height: 16px;
     border-bottom-width: 2px;
     transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+@keyframes mildSmile {
+  0%,
+  100% {
+    width: 18px;
+    height: 10px;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    width: 20px;
+    height: 12px;
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+@keyframes worriedMouth {
+  0%,
+  100% {
+    width: 18px;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    width: 16px;
+    transform: translateX(-50%) translateY(2px);
+  }
+}
+
+@keyframes faceBobSubtle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(2px) rotate(1deg);
+  }
+}
+
+@keyframes eyesLookDown {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(2px);
   }
 }
 

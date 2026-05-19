@@ -140,7 +140,14 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
               ))}
             </ul>
           </div>
-          <div className="heroImageSlot heroFace" aria-hidden="true">
+          <div
+            className="heroImageSlot heroFace"
+            data-grade={todayGrade}
+            aria-hidden="true"
+            style={{
+              background: `radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.42), transparent 1rem), linear-gradient(135deg, ${heroVisual.softColor}, ${heroVisual.color})`
+            }}
+          >
             <span className="heroEyes">
               <span className="heroEye heroEyeLeft" />
               <span className="heroEye heroEyeRight" />
@@ -151,7 +158,7 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
 
         <section className="sectionBlock">
           <div className="sectionTitleRow">
-            <h2>핵심 날씨 지표</h2>
+            <h2></h2>
             <button className="textButton" type="button" onClick={() => setSheetType("metrics")}>
               자세히 보기
             </button>
