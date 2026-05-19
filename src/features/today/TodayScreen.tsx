@@ -173,18 +173,34 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
             {metrics.map((metric) => {
               const currentTone = metric.current.tone ? getGradeVisual(metric.current.tone) : null;
               const peakTone = metric.peak.tone ? getGradeVisual(metric.peak.tone) : null;
+              const valuesMatch = metric.current.value === metric.peak.value;
 
               return (
                 <article className="miniCard metricDualCard" key={metric.label}>
                   <p className="metricDualCardTitle">{metric.label}</p>
-                  <div className="metricDualRow">
-                    <span className="metricDualLabel">지금</span>
-                    <strong style={{ color: currentTone?.color ?? colors.textPrimary }}>{metric.current.value}</strong>
-                  </div>
-                  <div className="metricDualRow">
-                    <span className="metricDualLabel">오늘 최대</span>
-                    <strong style={{ color: peakTone?.color ?? colors.textPrimary }}>{metric.peak.value}</strong>
-                  </div>
+                  {valuesMatch ? (
+                    <strong
+                      className="metricDualValue"
+                      style={{ color: currentTone?.color ?? colors.textPrimary }}
+                    >
+                      {metric.current.value}
+                    </strong>
+                  ) : (
+                    <div className="metricDualValues">
+                      <strong
+                        className="metricDualValue metricDualValueCurrent"
+                        style={{ color: currentTone?.color ?? colors.textPrimary }}
+                      >
+                        {metric.current.value}
+                      </strong>
+                      <strong
+                        className="metricDualValue metricDualValuePeak"
+                        style={{ color: peakTone?.color ?? colors.textPrimary }}
+                      >
+                        {metric.peak.value}
+                      </strong>
+                    </div>
+                  )}
                 </article>
               );
             })}
