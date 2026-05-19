@@ -99,7 +99,8 @@ type CachedTodayPayload = {
   categoriesKey: string;
 };
 
-const TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v1";
+const TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v2";
+const LEGACY_TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v1";
 const TODAY_PAYLOAD_CACHE_TTL_MS = 30 * 60 * 1000;
 
 export const mockTodayPayload: TodayPayload = {
@@ -201,12 +202,27 @@ export const mockTodayPayload: TodayPayload = {
   ]
 };
 
-export async function loadTodayPayload(preferredCategories?: ActivityCategoryCode[]): Promise<TodayPayload> {
+export function clearTodayPayloadCache(): void {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.removeItem(TODAY_PAYLOAD_CACHE_KEY);
+  window.localStorage.removeItem(LEGACY_TODAY_PAYLOAD_CACHE_KEY);
+}
+
+export async function loadTodayPayload(
+  preferredCategories?: ActivityCategoryCode[],
+  options?: { skipCache?: boolean }
+): Promise<TodayPayload> {
   const categories = preferredCategories && preferredCategories.length ? preferredCategories : readActivityPreferences();
   const categoriesKey = getCategoriesKey(categories);
-  const cachedPayload = readTodayPayloadCache(categoriesKey);
-  if (cachedPayload) {
-    return cachedPayload;
+
+  if (options?.skipCache) {
+    clearTodayPayloadCache();
+  } else {
+    const cachedPayload = readTodayPayloadCache(categoriesKey);
+    if (cachedPayload) {
+      return cachedPayload;
+    }
   }
 
   const coordinates = await resolveCoordinates();

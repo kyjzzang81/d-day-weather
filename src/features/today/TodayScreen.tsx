@@ -57,7 +57,7 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
     setIsLoading(true);
     setLoadError(null);
     setIsLocationError(false);
-    loadTodayPayload(preferredCategories)
+    loadTodayPayload(preferredCategories, { skipCache: true })
       .then((nextPayload) => {
         setPayload(nextPayload);
       })
