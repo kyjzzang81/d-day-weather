@@ -17,8 +17,6 @@ import {
   mockTodayPayload,
   type Activity,
   type ActivityCategoryCode,
-  type Metric,
-  type MetricReading,
   type TodayPayload
 } from "./todayPayload";
 import activityBeachIcon from "../../../assets/activity-icons/optimized/activity-beach.webp";
@@ -171,15 +169,25 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
               자세히 보기
             </button>
           </div>
-          <div className="metricGroups">
-            <div className="metricGroup">
-              <p className="metricGroupLabel">지금</p>
-              {renderMetricGrid(metrics, "current")}
-            </div>
-            <div className="metricGroup">
-              <p className="metricGroupLabel">오늘 최대</p>
-              {renderMetricGrid(metrics, "peak")}
-            </div>
+          <div className="metricGrid">
+            {metrics.map((metric) => {
+              const currentTone = metric.current.tone ? getGradeVisual(metric.current.tone) : null;
+              const peakTone = metric.peak.tone ? getGradeVisual(metric.peak.tone) : null;
+
+              return (
+                <article className="miniCard metricDualCard" key={metric.label}>
+                  <p className="metricDualCardTitle">{metric.label}</p>
+                  <div className="metricDualRow">
+                    <span className="metricDualLabel">지금</span>
+                    <strong style={{ color: currentTone?.color ?? colors.textPrimary }}>{metric.current.value}</strong>
+                  </div>
+                  <div className="metricDualRow">
+                    <span className="metricDualLabel">오늘 최대</span>
+                    <strong style={{ color: peakTone?.color ?? colors.textPrimary }}>{metric.peak.value}</strong>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
 
@@ -387,24 +395,6 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
       </BottomSheet>
     </>
-  );
-}
-
-function renderMetricGrid(metrics: Metric[], reading: "current" | "peak") {
-  return (
-    <div className="metricGrid">
-      {metrics.map((metric) => {
-        const item: MetricReading = metric[reading];
-        const tone = item.tone ? getGradeVisual(item.tone) : null;
-
-        return (
-          <article className="miniCard" key={`${reading}-${metric.label}`}>
-            <p>{metric.label}</p>
-            <strong style={{ color: tone?.color ?? colors.textPrimary }}>{item.value}</strong>
-          </article>
-        );
-      })}
-    </div>
   );
 }
 

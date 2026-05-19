@@ -292,28 +292,43 @@ a {
   animation: worriedMouth 5.5s ease-in-out infinite;
 }
 
-.metricGroups {
-  display: grid;
-  gap: 1rem;
-}
-
-.metricGroup {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.metricGroupLabel {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
-  font-weight: 600;
-}
-
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.metricDualCard {
+  display: grid;
+  gap: 0.375rem;
+  min-height: 96px;
+  padding: 0.625rem 0.375rem;
+  text-align: center;
+}
+
+.metricDualCardTitle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.metricDualRow {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.metricDualLabel {
+  color: var(--color-text-tertiary);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+
+.metricDualRow strong {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
 }
 
 .metricDetailValues {
@@ -344,14 +359,14 @@ a {
   text-align: center;
 }
 
-.miniCard p {
+.miniCard:not(.metricDualCard) p {
   margin: 0 0 0.5rem;
   color: var(--color-text-secondary);
   font-size: 0.75rem;
   line-height: 1rem;
 }
 
-.miniCard strong {
+.miniCard:not(.metricDualCard) strong {
   font-size: 1rem;
   line-height: 1.5rem;
 }
