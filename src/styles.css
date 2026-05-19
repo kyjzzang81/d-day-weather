@@ -122,7 +122,7 @@ a {
   padding: 0.25rem;
   font-size: 0.75rem;
   line-height: 1rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .iconButton {
@@ -323,7 +323,7 @@ a {
 .metricDualValueCurrent {
   font-size: 1.25rem;
   line-height: 1.625rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .metricDualPeakBlock {
@@ -448,7 +448,6 @@ a {
 }
 
 .activityCard {
-  min-height: 144px;
   border-radius: 1rem;
   padding: 0.75rem;
   display: grid;
@@ -494,7 +493,7 @@ img.activityImageSlot {
 .activityCard h3 {
   margin: 0;
   color: var(--color-text);
-  font-size: 0.75rem;
+  font-size: 1rem;
   line-height: 1rem;
   word-break: keep-all;
 }
@@ -537,9 +536,9 @@ img.activityImageSlot {
 .discoverCtaCard p {
   margin: 0 0 0.25rem;
   color: var(--color-primary);
-  font-size: 0.75rem;
+  font-size: 1rem;
   line-height: 1rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .discoverCtaCard strong {
@@ -903,14 +902,16 @@ img.activityImageSlot {
 
 .flowCardCopy strong {
   color: var(--color-text);
-  font-size: 1rem;
-  line-height: 1.25rem;
+  font-size: 1.25rem;
+  line-height: 1.625rem;
+  font-weight: 600;
 }
 
 .flowCardCopy span {
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  line-height: 1rem;
+  font-size: 1rem;
+  line-height: 1.25rem;
+  font-weight: 400;
 }
 
 .flowCardCopy em {
@@ -919,7 +920,7 @@ img.activityImageSlot {
   font-size: 0.75rem;
   line-height: 1rem;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .flowImageSlot {

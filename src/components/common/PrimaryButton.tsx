@@ -1,5 +1,11 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
-import { colors, radius, shadows, spacing, typography } from "../../design/tokens";
+import {
+  colors,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../design/tokens";
 import { motion } from "../../design/motion";
 
 interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -7,13 +13,17 @@ interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-export function PrimaryButton({ children, fullWidth = true, style, ...props }: PrimaryButtonProps) {
+export function PrimaryButton({
+  children,
+  fullWidth = true,
+  style,
+  ...props
+}: PrimaryButtonProps) {
   const buttonStyle: CSSProperties = {
     width: fullWidth ? "100%" : "auto",
-    minHeight: 50,
     border: 0,
     borderRadius: radius.md,
-    padding: `${spacing.md}px ${spacing.lg}px`,
+    padding: `${spacing.sm}px ${spacing.md}px`,
     background: colors.accent,
     color: colors.textInverse,
     boxShadow: shadows.card,
@@ -21,7 +31,7 @@ export function PrimaryButton({ children, fullWidth = true, style, ...props }: P
     opacity: props.disabled ? 0.55 : 1,
     transition: motion.transition.press,
     ...typography.button,
-    ...style
+    ...style,
   };
 
   return (
