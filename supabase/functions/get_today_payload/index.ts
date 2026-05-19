@@ -89,11 +89,15 @@ function buildTodayPayloadFromRows(
   locationLabel: string,
   updatedAt: Date
 ) {
-  const currentRow = findNearestRow(rows, new Date());
+  const now = new Date();
+  const currentRow = findNearestRow(rows, now);
   const dateKey = currentRow.timestamp.slice(0, 10);
   const todayRows = rows.filter((row) => row.timestamp.startsWith(dateKey));
-  const rainProbability = currentRow.precipitationProbability ?? inferRainProbability(currentRow);
-  const rainAmount = currentRow.precipitation ?? 0;
+  const daytimeRows = getDaytimeRows(todayRows);
+  const currentRainProbability = getEffectiveRainProbability(currentRow);
+  const peakRainProbability = getPeakRainProbability(daytimeRows);
+  const rainProbability = Math.max(currentRainProbability, peakRainProbability);
+  const rainAmount = Math.max(currentRow.precipitation ?? 0, getPeakRainAmount(daytimeRows));
   const windMs = windKmhToMs(currentRow.windSpeedKmh);
   const pm25Label = getPm25Label(currentRow.pm25);
   const uvLabel = getUvLabel(currentRow.uv);
@@ -103,15 +107,11 @@ function buildTodayPayloadFromRows(
     wind: gradeWind(windMs),
     pm25: gradePm25(currentRow.pm25)
   };
-  const grade = lowestGrade([
-    metricGrades.rainProbability,
-    metricGrades.rainAmount,
-    metricGrades.wind,
-    metricGrades.pm25
-  ]);
   const morningGrade = gradePeriod(todayRows, 6, 11);
   const afternoonGrade = gradePeriod(todayRows, 12, 17);
   const eveningGrade = gradePeriod(todayRows, 18, 23);
+  const grade = lowestGrade([morningGrade, afternoonGrade, eveningGrade]);
+  const periodGrades = { morning: morningGrade, afternoon: afternoonGrade, evening: eveningGrade };
 
   return {
     source: "live",
@@ -122,9 +122,17 @@ function buildTodayPayloadFromRows(
     metrics: [
       {
         label: "강수확률",
-        value: `${Math.round(rainProbability)}%`,
+        value:
+          peakRainProbability > currentRainProbability + 5
+            ? `최대 ${Math.round(peakRainProbability)}%`
+            : `${Math.round(rainProbability)}%`,
         tone: metricGrades.rainProbability,
-        detail: rainProbability <= 30 ? "비 가능성이 낮아 짧은 외출은 편안해요." : "비 가능성이 있어 이동 전 우산을 챙기는 편이 좋아요."
+        detail:
+          peakRainProbability > currentRainProbability + 5
+            ? `지금은 ${Math.round(currentRainProbability)}%지만, 오늘 중 최대 ${Math.round(peakRainProbability)}%까지 올라갈 수 있어요.`
+            : rainProbability <= 30
+              ? "비 가능성이 낮아 짧은 외출은 편안해요."
+              : "비 가능성이 있어 이동 전 우산을 챙기는 편이 좋아요."
       },
       {
         label: "강수량",
@@ -163,13 +171,8 @@ function buildTodayPayloadFromRows(
       { label: "저녁", value: gradeShortLabel(eveningGrade), grade: eveningGrade },
       { label: "일몰", value: formatClock(sunset) ?? "19:48", grade: "great" }
     ],
-    activities: buildActivities(grade, metricGrades, rainProbability, windMs, pm25Label),
-    ddaySummary: {
-      title: "친구들과 제주 여행",
-      dateLabel: "6.5 (목) ~ 6.8 (일)",
-      location: "제주도",
-      grade: "great"
-    },
+    activities: buildActivities(grade, periodGrades, metricGrades, rainProbability, windMs, pm25Label),
+    ddaySummary: null,
     hourlyWeather: buildHourlyWeather(todayRows)
   };
 }
@@ -253,7 +256,7 @@ function buildHourlyWeather(rows: ForecastRow[]) {
     .slice(0, 18)
     .map((row) => {
       const hour = parseLocalDate(row.timestamp).getHours();
-      const rainProbability = row.precipitationProbability ?? inferRainProbability(row);
+      const rainProbability = getEffectiveRainProbability(row);
 
       return {
         time: `${String(hour).padStart(2, "0")}:00`,
@@ -285,17 +288,22 @@ type MetricGrades = {
 };
 
 function buildActivities(
-  grade: GradeCode,
+  dayGrade: GradeCode,
+  periodGrades: { morning: GradeCode; afternoon: GradeCode; evening: GradeCode },
   metricGrades: MetricGrades,
   rainProbability: number,
   windMs: number,
   pm25Label: string
 ): ActivityCard[] {
-  const outdoorExposedGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
-  const outdoorActiveGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
-  const outdoorStayGrade = lowestGrade([grade, metricGrades.rainAmount, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
-  const outdoorRelaxGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
-  const indoorGrade = lowestGrade([grade === "uhm" ? "great" : "gorgeous", metricGrades.rainProbability, metricGrades.wind]);
+  const outdoorExposedGrade = lowestGrade([dayGrade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
+  const outdoorActiveGrade = lowestGrade([dayGrade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
+  const outdoorStayGrade = lowestGrade([dayGrade, metricGrades.rainAmount, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
+  const outdoorRelaxGrade = lowestGrade([dayGrade, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
+  const indoorGrade = lowestGrade([
+    rainProbability >= 55 || dayGrade === "uhm" ? "gorgeous" : rainProbability >= 40 ? "great" : "gorgeous",
+    metricGrades.rainProbability,
+    metricGrades.wind
+  ]);
 
   const rainCaution = rainProbability >= 40 ? ["비 예보가 바뀌는지 확인해주세요"] : ["오후 체감온도만 확인하세요"];
   const moveCaution = rainProbability >= 40 ? ["비가 오면 이동 시간을 조금 넉넉히 잡아주세요"] : ["점심 시간대 혼잡만 고려하면 좋아요"];
@@ -308,7 +316,7 @@ function buildActivities(
       reason: rainProbability <= 30 ? "물가 활동에 무난한 날씨예요" : "비·바람이 강하면 계곡·강 일정은 피하는 편이 좋아요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: rainProbability >= 40 ? ["비 예보 시 물가 접근은 피해주세요"] : ["햇빛이 강하면 그늘 휴식을 섞어주세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "hiking",
@@ -317,7 +325,7 @@ function buildActivities(
       reason: rainProbability <= 30 ? "트레킹하기 좋은 컨디션이에요" : "젖은 길·바람을 고려해 짧은 코스가 좋아요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `미세먼지 ${pm25Label}`],
       cautions: metricGrades.pm25 === "uhm" ? ["미세먼지가 나쁘면 실내 대안을 검토하세요"] : ["정상부 바람을 한 번 더 확인하세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorActiveGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "camping",
@@ -326,7 +334,7 @@ function buildActivities(
       reason: rainProbability <= 30 ? "야외 체류 일정을 잡기 무난해요" : "비·바람이 있으면 짧은 야외 체류 위주로 잡아주세요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: rainProbability >= 50 ? ["비 예보가 크면 야외 체류 시간을 줄여주세요"] : ["저녁 체감온도를 확인하세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorStayGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "scenic",
@@ -335,16 +343,16 @@ function buildActivities(
       reason: metricGrades.rainProbability === "uhm" ? "비·구름이 시야를 가릴 수 있어요" : "일출·일몰 감상에 무난한 날씨예요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `미세먼지 ${pm25Label}`],
       cautions: ["구름이 많으면 실내 뷰 스팟도 함께 잡아주세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "photo",
       title: "사진/뷰",
-      grade: lowestGrade([grade, metricGrades.pm25, metricGrades.wind, metricGrades.rainProbability]),
+      grade: lowestGrade([dayGrade, metricGrades.pm25, metricGrades.wind, metricGrades.rainProbability]),
       reason: metricGrades.pm25 === "uhm" ? "시야와 공기 상태를 확인하세요" : "빛과 바람이 비교적 무난해요",
       goodReasons: [`미세먼지 ${pm25Label}`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: ["구름 변화가 있으면 실내 뷰 스팟도 함께 잡아주세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "urban",
@@ -353,7 +361,7 @@ function buildActivities(
       reason: rainProbability <= 30 ? "비 부담이 낮고 걷기 편해요" : "짧은 산책 위주로 좋아요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: rainCaution,
-      timeRecommendations: defaultTimeRecommendations(outdoorRelaxGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "cafe",
@@ -371,7 +379,7 @@ function buildActivities(
       reason: rainProbability <= 30 ? "야외 행사를 즐기기 무난해요" : "비·바람이 있으면 실내 대안을 함께 검토하세요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: rainProbability >= 40 ? ["우천 시 일정 변경 가능성을 열어두세요"] : ["오후 체감온도만 확인하세요"],
-      timeRecommendations: defaultTimeRecommendations(outdoorRelaxGrade, grade, metricGrades.wind)
+      timeRecommendations: defaultTimeRecommendations(periodGrades.morning, periodGrades.afternoon, periodGrades.evening)
     },
     {
       category: "spa",
@@ -420,7 +428,7 @@ function gradePeriod(rows: ForecastRow[], startHour: number, endHour: number): G
 }
 
 function gradeForecastRow(row: ForecastRow): GradeCode {
-  const rain = gradeRainProbability(row.precipitationProbability ?? inferRainProbability(row));
+  const rain = gradeRainProbability(getEffectiveRainProbability(row));
   const amount = gradeRainAmount(row.precipitation ?? 0);
   const wind = gradeWind(windKmhToMs(row.windSpeedKmh));
   const dust = gradePm25(row.pm25);
@@ -439,6 +447,36 @@ function findNearestRow(rows: ForecastRow[], now: Date): ForecastRow {
 
 function parseLocalDate(timestamp: string): Date {
   return new Date(timestamp.length === 16 ? `${timestamp}:00` : timestamp);
+}
+
+function getDaytimeRows(rows: ForecastRow[]): ForecastRow[] {
+  return rows.filter((row) => {
+    const hour = parseLocalDate(row.timestamp).getHours();
+    return hour >= 6 && hour <= 23;
+  });
+}
+
+function getEffectiveRainProbability(row: ForecastRow): number {
+  const fromForecast = row.precipitationProbability ?? inferRainProbability(row);
+  const precipitation = row.precipitation ?? 0;
+
+  if (precipitation >= 2) return Math.max(fromForecast, 80);
+  if (precipitation >= 0.5) return Math.max(fromForecast, 55);
+  if (precipitation > 0) return Math.max(fromForecast, 35);
+
+  return fromForecast;
+}
+
+function getPeakRainProbability(rows: ForecastRow[]): number {
+  if (!rows.length) return 0;
+
+  return rows.reduce((peak, row) => Math.max(peak, getEffectiveRainProbability(row)), 0);
+}
+
+function getPeakRainAmount(rows: ForecastRow[]): number {
+  if (!rows.length) return 0;
+
+  return rows.reduce((peak, row) => Math.max(peak, row.precipitation ?? 0), 0);
 }
 
 function inferRainProbability(row: ForecastRow): number {
