@@ -215,13 +215,19 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
             </div>
           ) : (
             <EmptyState
-              title={activityPreferenceSet ? "선택한 활동 추천을 준비 중이에요." : "선호 활동을 선택해주세요."}
+              title={activityPreferenceSet ? "선택한 활동 추천을 불러오지 못했어요." : "선호 활동을 선택해주세요."}
               description={
                 activityPreferenceSet
-                  ? "선택한 카테고리의 실시간 추천은 곧 반영될 예정이에요. 다른 활동도 함께 선택해보세요."
+                  ? "다시 불러오기를 눌러 최신 추천을 받아보세요. 계속 비어 있으면 설정을 한 번 더 저장해주세요."
                   : "자주 하는 활동을 설정하면 오늘 어떤 활동이 좋은지 알려드릴게요."
               }
-              action={<PrimaryButton onClick={() => navigate("/activity-preferences")}>선호 활동 설정하기</PrimaryButton>}
+              action={
+                activityPreferenceSet ? (
+                  <PrimaryButton onClick={refreshTodayPayload}>다시 불러오기</PrimaryButton>
+                ) : (
+                  <PrimaryButton onClick={() => navigate("/activity-preferences")}>선호 활동 설정하기</PrimaryButton>
+                )
+              }
             />
           )}
         </section>

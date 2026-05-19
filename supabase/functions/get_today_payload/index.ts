@@ -267,57 +267,142 @@ function buildHourlyWeather(rows: ForecastRow[]) {
     });
 }
 
+type ActivityCard = {
+  category: string;
+  title: string;
+  grade: GradeCode;
+  reason: string;
+  goodReasons: string[];
+  cautions: string[];
+  timeRecommendations: { label: string; time: string; grade: GradeCode }[];
+};
+
+type MetricGrades = {
+  rainProbability: GradeCode;
+  rainAmount: GradeCode;
+  wind: GradeCode;
+  pm25: GradeCode;
+};
+
 function buildActivities(
   grade: GradeCode,
-  metricGrades: { rainProbability: GradeCode; rainAmount: GradeCode; wind: GradeCode; pm25: GradeCode },
+  metricGrades: MetricGrades,
   rainProbability: number,
   windMs: number,
   pm25Label: string
-) {
-  const urbanGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
-  const cafeGrade = grade === "uhm" ? "great" : "gorgeous";
-  const photoGrade = lowestGrade([grade, metricGrades.pm25, metricGrades.wind]);
+): ActivityCard[] {
+  const outdoorExposedGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
+  const outdoorActiveGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.rainAmount, metricGrades.wind, metricGrades.pm25]);
+  const outdoorStayGrade = lowestGrade([grade, metricGrades.rainAmount, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
+  const outdoorRelaxGrade = lowestGrade([grade, metricGrades.rainProbability, metricGrades.wind, metricGrades.pm25]);
+  const indoorGrade = lowestGrade([grade === "uhm" ? "great" : "gorgeous", metricGrades.rainProbability, metricGrades.wind]);
+
+  const rainCaution = rainProbability >= 40 ? ["비 예보가 바뀌는지 확인해주세요"] : ["오후 체감온도만 확인하세요"];
+  const moveCaution = rainProbability >= 40 ? ["비가 오면 이동 시간을 조금 넉넉히 잡아주세요"] : ["점심 시간대 혼잡만 고려하면 좋아요"];
 
   return [
     {
-      category: "urban",
-      title: "피크닉/도시산책",
-      grade: urbanGrade,
-      reason: rainProbability <= 30 ? "비 부담이 낮고 걷기 편해요" : "짧은 산책 위주로 좋아요",
+      category: "beach",
+      title: "계곡/강",
+      grade: outdoorExposedGrade,
+      reason: rainProbability <= 30 ? "물가 활동에 무난한 날씨예요" : "비·바람이 강하면 계곡·강 일정은 피하는 편이 좋아요",
       goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
-      cautions: rainProbability >= 40 ? ["비 예보가 바뀌는지 확인해주세요"] : ["오후 체감온도만 확인하세요"],
-      timeRecommendations: [
-        { label: "오전", time: "06~12시", grade: metricGrades.wind },
-        { label: "오후", time: "12~18시", grade },
-        { label: "저녁", time: "18~24시", grade: urbanGrade }
-      ]
+      cautions: rainProbability >= 40 ? ["비 예보 시 물가 접근은 피해주세요"] : ["햇빛이 강하면 그늘 휴식을 섞어주세요"],
+      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
     },
     {
-      category: "cafe",
-      title: "카페/맛집",
-      grade: cafeGrade,
-      reason: "날씨 변수와 상관없이 일정이 안정적이에요",
-      goodReasons: ["실내 이동 비중을 조절하기 쉬워요", `미세먼지는 ${pm25Label}이에요`],
-      cautions: rainProbability >= 40 ? ["비가 오면 이동 시간을 조금 넉넉히 잡아주세요"] : ["점심 시간대 혼잡만 고려하면 좋아요"],
-      timeRecommendations: [
-        { label: "오전", time: "06~12시", grade: cafeGrade },
-        { label: "오후", time: "12~18시", grade: cafeGrade },
-        { label: "저녁", time: "18~24시", grade: "gorgeous" }
-      ]
+      category: "hiking",
+      title: "등산/트래킹",
+      grade: outdoorActiveGrade,
+      reason: rainProbability <= 30 ? "트레킹하기 좋은 컨디션이에요" : "젖은 길·바람을 고려해 짧은 코스가 좋아요",
+      goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `미세먼지 ${pm25Label}`],
+      cautions: metricGrades.pm25 === "uhm" ? ["미세먼지가 나쁘면 실내 대안을 검토하세요"] : ["정상부 바람을 한 번 더 확인하세요"],
+      timeRecommendations: defaultTimeRecommendations(outdoorActiveGrade, grade, metricGrades.wind)
+    },
+    {
+      category: "camping",
+      title: "테마 탐방",
+      grade: outdoorStayGrade,
+      reason: rainProbability <= 30 ? "야외 체류 일정을 잡기 무난해요" : "비·바람이 있으면 짧은 야외 체류 위주로 잡아주세요",
+      goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
+      cautions: rainProbability >= 50 ? ["비 예보가 크면 야외 체류 시간을 줄여주세요"] : ["저녁 체감온도를 확인하세요"],
+      timeRecommendations: defaultTimeRecommendations(outdoorStayGrade, grade, metricGrades.wind)
+    },
+    {
+      category: "scenic",
+      title: "일출/일몰",
+      grade: outdoorExposedGrade,
+      reason: metricGrades.rainProbability === "uhm" ? "비·구름이 시야를 가릴 수 있어요" : "일출·일몰 감상에 무난한 날씨예요",
+      goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `미세먼지 ${pm25Label}`],
+      cautions: ["구름이 많으면 실내 뷰 스팟도 함께 잡아주세요"],
+      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
     },
     {
       category: "photo",
       title: "사진/뷰",
-      grade: photoGrade,
+      grade: lowestGrade([grade, metricGrades.pm25, metricGrades.wind, metricGrades.rainProbability]),
       reason: metricGrades.pm25 === "uhm" ? "시야와 공기 상태를 확인하세요" : "빛과 바람이 비교적 무난해요",
       goodReasons: [`미세먼지 ${pm25Label}`, `바람 ${formatNumber(windMs)}m/s`],
       cautions: ["구름 변화가 있으면 실내 뷰 스팟도 함께 잡아주세요"],
-      timeRecommendations: [
-        { label: "오전", time: "06~12시", grade: photoGrade },
-        { label: "오후", time: "12~18시", grade },
-        { label: "저녁", time: "18~24시", grade: "great" }
-      ]
+      timeRecommendations: defaultTimeRecommendations(outdoorExposedGrade, grade, metricGrades.wind)
+    },
+    {
+      category: "urban",
+      title: "피크닉/산책",
+      grade: outdoorRelaxGrade,
+      reason: rainProbability <= 30 ? "비 부담이 낮고 걷기 편해요" : "짧은 산책 위주로 좋아요",
+      goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
+      cautions: rainCaution,
+      timeRecommendations: defaultTimeRecommendations(outdoorRelaxGrade, grade, metricGrades.wind)
+    },
+    {
+      category: "cafe",
+      title: "카페/맛집",
+      grade: indoorGrade,
+      reason: "날씨 변수와 상관없이 일정이 안정적이에요",
+      goodReasons: ["실내 이동 비중을 조절하기 쉬워요", `미세먼지는 ${pm25Label}이에요`],
+      cautions: moveCaution,
+      timeRecommendations: defaultTimeRecommendations(indoorGrade, indoorGrade, indoorGrade)
+    },
+    {
+      category: "festival",
+      title: "축제/이벤트",
+      grade: outdoorRelaxGrade,
+      reason: rainProbability <= 30 ? "야외 행사를 즐기기 무난해요" : "비·바람이 있으면 실내 대안을 함께 검토하세요",
+      goodReasons: [`강수확률 ${Math.round(rainProbability)}%`, `바람 ${formatNumber(windMs)}m/s`],
+      cautions: rainProbability >= 40 ? ["우천 시 일정 변경 가능성을 열어두세요"] : ["오후 체감온도만 확인하세요"],
+      timeRecommendations: defaultTimeRecommendations(outdoorRelaxGrade, grade, metricGrades.wind)
+    },
+    {
+      category: "spa",
+      title: "온천/리조트",
+      grade: indoorGrade,
+      reason: rainProbability >= 40 ? "이동만 신경 쓰면 실내 휴식은 안정적이에요" : "휴식 일정에 잘 맞는 날씨예요",
+      goodReasons: ["실내 체류 비중이 높아요", `미세먼지 ${pm25Label}`],
+      cautions: moveCaution,
+      timeRecommendations: defaultTimeRecommendations(indoorGrade, indoorGrade, indoorGrade)
+    },
+    {
+      category: "indoor",
+      title: "전시/실내",
+      grade: indoorGrade,
+      reason: "비·바람이 있어도 실내 일정은 비교적 안정적이에요",
+      goodReasons: ["실내 활동 중심으로 계획하기 좋아요", `미세먼지 ${pm25Label}`],
+      cautions: moveCaution,
+      timeRecommendations: defaultTimeRecommendations(indoorGrade, indoorGrade, indoorGrade)
     }
+  ];
+}
+
+function defaultTimeRecommendations(
+  morningGrade: GradeCode,
+  afternoonGrade: GradeCode,
+  eveningGrade: GradeCode
+): { label: string; time: string; grade: GradeCode }[] {
+  return [
+    { label: "오전", time: "06~12시", grade: morningGrade },
+    { label: "오후", time: "12~18시", grade: afternoonGrade },
+    { label: "저녁", time: "18~24시", grade: eveningGrade }
   ];
 }
 
