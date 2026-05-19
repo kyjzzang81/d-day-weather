@@ -96,16 +96,21 @@ function buildTodayPayloadFromRows(
   const daytimeRows = getDaytimeRows(todayRows);
   const currentRainProbability = getEffectiveRainProbability(currentRow);
   const peakRainProbability = getPeakRainProbability(daytimeRows);
+  const currentRainAmount = currentRow.precipitation ?? 0;
+  const peakRainAmount = getPeakRainAmount(daytimeRows);
   const rainProbability = Math.max(currentRainProbability, peakRainProbability);
-  const rainAmount = Math.max(currentRow.precipitation ?? 0, getPeakRainAmount(daytimeRows));
+  const rainAmount = Math.max(currentRainAmount, peakRainAmount);
   const windMs = windKmhToMs(currentRow.windSpeedKmh);
+  const peakWindMs = getPeakWindMs(daytimeRows);
   const pm25Label = getPm25Label(currentRow.pm25);
+  const peakPm25 = getPeakPm25(daytimeRows);
+  const peakPm25Label = getPm25Label(peakPm25);
   const uvLabel = getUvLabel(currentRow.uv);
   const metricGrades = {
     rainProbability: gradeRainProbability(rainProbability),
     rainAmount: gradeRainAmount(rainAmount),
-    wind: gradeWind(windMs),
-    pm25: gradePm25(currentRow.pm25)
+    wind: gradeWind(Math.max(windMs, peakWindMs)),
+    pm25: gradePm25(peakPm25 ?? currentRow.pm25)
   };
   const morningGrade = gradePeriod(todayRows, 6, 11);
   const afternoonGrade = gradePeriod(todayRows, 12, 17);
@@ -119,40 +124,18 @@ function buildTodayPayloadFromRows(
     updatedAtLabel: formatUpdatedAt(updatedAt),
     grade,
     reasons: buildReasons(grade, rainProbability, windMs, pm25Label),
-    metrics: [
-      {
-        label: "강수확률",
-        value:
-          peakRainProbability > currentRainProbability + 5
-            ? `최대 ${Math.round(peakRainProbability)}%`
-            : `${Math.round(rainProbability)}%`,
-        tone: metricGrades.rainProbability,
-        detail:
-          peakRainProbability > currentRainProbability + 5
-            ? `지금은 ${Math.round(currentRainProbability)}%지만, 오늘 중 최대 ${Math.round(peakRainProbability)}%까지 올라갈 수 있어요.`
-            : rainProbability <= 30
-              ? "비 가능성이 낮아 짧은 외출은 편안해요."
-              : "비 가능성이 있어 이동 전 우산을 챙기는 편이 좋아요."
-      },
-      {
-        label: "강수량",
-        value: `${formatNumber(rainAmount)}mm`,
-        tone: metricGrades.rainAmount,
-        detail: rainAmount <= 1 ? "강수량 부담은 작아요." : "비가 내릴 수 있어 야외 체류 시간은 짧게 잡아주세요."
-      },
-      {
-        label: "바람",
-        value: `${formatNumber(windMs)}m/s`,
-        tone: metricGrades.wind,
-        detail: windMs <= 4 ? "산책, 피크닉, 사진 촬영 모두 무난한 바람이에요." : "바람이 느껴질 수 있어 강변이나 높은 곳은 조금 신경 써주세요."
-      },
-      {
-        label: "미세먼지",
-        value: pm25Label,
-        tone: metricGrades.pm25,
-        detail: currentRow.pm25 == null ? "미세먼지 데이터가 아직 충분하지 않아요." : currentRow.pm25 <= 35 ? "야외 활동에 큰 부담이 적어요." : "오래 걷는 일정은 쉬는 시간을 섞어주세요."
-      }
-    ],
+    metrics: buildWeatherMetrics({
+      currentRainProbability,
+      peakRainProbability,
+      currentRainAmount,
+      peakRainAmount,
+      windMs,
+      peakWindMs,
+      currentPm25: currentRow.pm25,
+      peakPm25,
+      pm25Label,
+      peakPm25Label
+    }),
     supportMetrics: [
       { label: "체감온도", value: `${formatNumber(currentRow.temperature)}°` },
       { label: "습도", value: `${formatNumber(currentRow.humidity)}%` },
@@ -477,6 +460,116 @@ function getPeakRainAmount(rows: ForecastRow[]): number {
   if (!rows.length) return 0;
 
   return rows.reduce((peak, row) => Math.max(peak, row.precipitation ?? 0), 0);
+}
+
+function getPeakWindMs(rows: ForecastRow[]): number {
+  if (!rows.length) return 0;
+
+  return rows.reduce((peak, row) => Math.max(peak, windKmhToMs(row.windSpeedKmh)), 0);
+}
+
+function getPeakPm25(rows: ForecastRow[]): number | null {
+  const values = rows.map((row) => row.pm25).filter((value): value is number => value != null);
+  if (!values.length) return null;
+
+  return Math.max(...values);
+}
+
+type WeatherMetricInput = {
+  currentRainProbability: number;
+  peakRainProbability: number;
+  currentRainAmount: number;
+  peakRainAmount: number;
+  windMs: number;
+  peakWindMs: number;
+  currentPm25: number | null;
+  peakPm25: number | null;
+  pm25Label: string;
+  peakPm25Label: string;
+};
+
+function buildWeatherMetrics(input: WeatherMetricInput) {
+  const currentRainTone = gradeRainProbability(input.currentRainProbability);
+  const peakRainTone = gradeRainProbability(input.peakRainProbability);
+  const currentAmountTone = gradeRainAmount(input.currentRainAmount);
+  const peakAmountTone = gradeRainAmount(input.peakRainAmount);
+  const currentWindTone = gradeWind(input.windMs);
+  const peakWindTone = gradeWind(input.peakWindMs);
+  const currentPm25Tone = gradePm25(input.currentPm25);
+  const peakPm25Tone = gradePm25(input.peakPm25);
+
+  return [
+    {
+      label: "강수확률",
+      current: {
+        value: `${Math.round(input.currentRainProbability)}%`,
+        tone: currentRainTone
+      },
+      peak: {
+        value: `${Math.round(input.peakRainProbability)}%`,
+        tone: peakRainTone
+      },
+      detail:
+        input.peakRainProbability > input.currentRainProbability + 5
+          ? `지금은 ${Math.round(input.currentRainProbability)}%지만, 오늘 낮(06~23시) 중 최대 ${Math.round(input.peakRainProbability)}%까지 예보돼요.`
+          : input.currentRainProbability <= 30
+            ? "비 가능성이 낮아 짧은 외출은 편안해요."
+            : "비 가능성이 있어 이동 전 우산을 챙기는 편이 좋아요."
+    },
+    {
+      label: "강수량",
+      current: {
+        value: `${formatNumber(input.currentRainAmount)}mm`,
+        tone: currentAmountTone
+      },
+      peak: {
+        value: `${formatNumber(input.peakRainAmount)}mm`,
+        tone: peakAmountTone
+      },
+      detail:
+        input.peakRainAmount > input.currentRainAmount + 0.2
+          ? `지금은 ${formatNumber(input.currentRainAmount)}mm지만, 오늘 낮 중 최대 ${formatNumber(input.peakRainAmount)}mm까지 예보돼요.`
+          : input.peakRainAmount <= 1
+            ? "강수량 부담은 작아요."
+            : "비가 내릴 수 있어 야외 체류 시간은 짧게 잡아주세요."
+    },
+    {
+      label: "바람",
+      current: {
+        value: `${formatNumber(input.windMs)}m/s`,
+        tone: currentWindTone
+      },
+      peak: {
+        value: `${formatNumber(input.peakWindMs)}m/s`,
+        tone: peakWindTone
+      },
+      detail:
+        input.peakWindMs > input.windMs + 1
+          ? `지금은 ${formatNumber(input.windMs)}m/s지만, 오늘 낮 중 최대 ${formatNumber(input.peakWindMs)}m/s까지 불어요.`
+          : input.windMs <= 4
+            ? "산책, 피크닉, 사진 촬영 모두 무난한 바람이에요."
+            : "바람이 느껴질 수 있어 강변이나 높은 곳은 조금 신경 써주세요."
+    },
+    {
+      label: "미세먼지",
+      current: {
+        value: input.pm25Label,
+        tone: currentPm25Tone
+      },
+      peak: {
+        value: input.peakPm25Label,
+        tone: peakPm25Tone
+      },
+      detail:
+        input.currentPm25 == null
+          ? "미세먼지 데이터가 아직 충분하지 않아요."
+          : input.peakPm25 != null && input.peakPm25 > (input.currentPm25 ?? 0) + 10
+            ? `지금은 ${input.pm25Label}이지만, 오늘 낮 중에는 ${input.peakPm25Label}까지 올라갈 수 있어요.`
+            : input.currentPm25 <= 35
+              ? "야외 활동에 큰 부담이 적어요."
+              : "오래 걷는 일정은 쉬는 시간을 섞어주세요."
+    }
+  ];
 }
 
 function inferRainProbability(row: ForecastRow): number {

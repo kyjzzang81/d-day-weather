@@ -14,10 +14,15 @@ export type ActivityCategoryCode =
   | "spa"
   | "indoor";
 
-export interface Metric {
-  label: string;
+export interface MetricReading {
   value: string;
   tone?: GradeCode;
+}
+
+export interface Metric {
+  label: string;
+  current: MetricReading;
+  peak: MetricReading;
   detail: string;
 }
 
@@ -109,10 +114,30 @@ export const mockTodayPayload: TodayPayload = {
   grade: "gorgeous",
   reasons: ["가벼운 외출과 산책에 좋아요", "비 가능성이 낮고 바람도 안정적이에요"],
   metrics: [
-    { label: "강수확률", value: "20%", tone: "great", detail: "우산 없이 짧은 외출은 괜찮아요. 오래 머문다면 접이식 우산만 챙겨도 충분해요." },
-    { label: "강수량", value: "0mm", tone: "gorgeous", detail: "비 때문에 일정이 크게 흔들릴 가능성은 낮아요." },
-    { label: "바람", value: "2m/s", tone: "great", detail: "산책, 피크닉, 사진 촬영 모두 무난해요." },
-    { label: "미세먼지", value: "좋음", tone: "gorgeous", detail: "아이와 함께하거나 오래 걷기에도 부담이 적어요." }
+    {
+      label: "강수확률",
+      current: { value: "20%", tone: "great" },
+      peak: { value: "35%", tone: "good" },
+      detail: "지금은 비 부담이 낮아요. 오후에는 확률이 조금 올라갈 수 있어요."
+    },
+    {
+      label: "강수량",
+      current: { value: "0mm", tone: "gorgeous" },
+      peak: { value: "0.2mm", tone: "gorgeous" },
+      detail: "하루 종일 강한 비 가능성은 낮아요."
+    },
+    {
+      label: "바람",
+      current: { value: "2m/s", tone: "great" },
+      peak: { value: "3.5m/s", tone: "great" },
+      detail: "바람은 전반적으로 안정적이에요."
+    },
+    {
+      label: "미세먼지",
+      current: { value: "좋음", tone: "gorgeous" },
+      peak: { value: "보통", tone: "great" },
+      detail: "공기 상태는 비교적 좋은 편이에요."
+    }
   ],
   supportMetrics: [
     { label: "체감온도", value: "24°" },
@@ -481,7 +506,16 @@ function isTodayPayload(input: unknown): input is TodayPayload {
       "grade" in input &&
       "metrics" in input &&
       "hourlyWeather" in input &&
-      Array.isArray((input as TodayPayload).metrics)
+      Array.isArray((input as TodayPayload).metrics) &&
+      (input as TodayPayload).metrics.every(
+        (metric) =>
+          metric &&
+          typeof metric === "object" &&
+          "current" in metric &&
+          "peak" in metric &&
+          typeof metric.current?.value === "string" &&
+          typeof metric.peak?.value === "string"
+      )
   );
 }
 

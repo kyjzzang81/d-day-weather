@@ -154,7 +154,7 @@ a {
   width: 8px;
   height: 8px;
   border-radius: 999rem;
-  background: var(--color-primary);
+  background: var(--color-text-tertiary);
   display: inline-block;
   margin-right: 0.5rem;
   vertical-align: middle;
@@ -292,10 +292,40 @@ a {
   animation: worriedMouth 5.5s ease-in-out infinite;
 }
 
+.metricGroups {
+  display: grid;
+  gap: 1rem;
+}
+
+.metricGroup {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.metricGroupLabel {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.metricDetailValues {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.metricDetailValues strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
 }
 
 .miniCard,
@@ -580,16 +610,15 @@ img.activityImageSlot {
 
 .metricDetailGrid {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .metricDetailCard {
   display: grid;
   gap: 0.5rem;
-  border-radius: 1rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 0.75rem;
+
+  padding: 0.25rem 0.75rem;
 }
 
 .metricDetailCard > div {
