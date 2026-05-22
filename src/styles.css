@@ -141,9 +141,9 @@ a {
 .reasonList {
   list-style: none;
   padding: 0;
-  margin: 1rem 0 0;
+  margin: 0.875rem 0 0;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.375rem;
   color: var(--color-text-secondary);
   font-size: 0.75rem;
   line-height: 1.25rem;
@@ -151,18 +151,19 @@ a {
 
 .reasonList li::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 0.375rem;
+  height: 0.375rem;
   border-radius: 999rem;
-  background: var(--color-text-tertiary);
+  background: var(--color-primary);
   display: inline-block;
   margin-right: 0.5rem;
   vertical-align: middle;
+  opacity: 0.64;
 }
 
 .weatherHeroCard {
-  min-height: 176px;
-  padding: 1.25rem 1rem;
+  min-height: 184px;
+  padding: 1.25rem 1rem 1.125rem;
 }
 
 .heroCopy {
@@ -172,18 +173,21 @@ a {
 }
 
 .heroGradeTitle {
-  margin: 0.5rem 0 0.25rem;
+  display: inline;
+  margin: 0.5rem 0 0.375rem;
   font-size: 2rem;
   line-height: 2.5rem;
-  font-weight: 700;
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .heroImageSlot {
   position: absolute;
-  right: 16px;
-  top: 32px;
-  width: 80px;
-  height: 80px;
+  right: 18px;
+  top: 28px;
+  width: 82px;
+  height: 82px;
   border-radius: 50%;
   color: var(--color-text);
   display: block;
@@ -303,8 +307,23 @@ a {
   align-content: center;
   gap: 0.5rem;
   min-height: 88px;
-  padding: 0.75rem 0.375rem;
+  padding: 0.75rem 0.5rem;
   text-align: center;
+}
+
+.metricDualCardHeader {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.metricStatusDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999rem;
+  flex: 0 0 auto;
 }
 
 .metricDualCardTitle {
@@ -321,14 +340,15 @@ a {
 }
 
 .metricDualValueCurrent {
+  color: var(--color-text);
   font-size: 1.25rem;
   line-height: 1.625rem;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .metricDualPeakBlock {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.125rem;
 }
 
 .metricDualPeakLabel {
@@ -339,9 +359,10 @@ a {
 }
 
 .metricDualPeakValue {
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
   line-height: 1.125rem;
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .metricDetailValues {
@@ -438,6 +459,70 @@ a {
   font-size: 0.75rem;
   line-height: 1rem;
   white-space: nowrap;
+}
+
+.dayFlowSummaryCard {
+  display: grid;
+  gap: 0.625rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  padding: 0.875rem;
+}
+
+.dayFlowSummaryCopy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.dayFlowSummaryCopy strong {
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+  font-weight: 800;
+}
+
+.dayFlowSummaryCopy span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.dayFlowSegments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.dayFlowSegment {
+  min-width: 0;
+  border-radius: 0.75rem;
+  background: var(--color-surface-muted);
+  padding: 0.5625rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.dayFlowSegmentDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999rem;
+}
+
+.dayFlowSegment span {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+}
+
+.dayFlowSegment strong {
+  color: var(--color-text);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 800;
 }
 
 .activityScroller {
@@ -635,6 +720,117 @@ img.activityImageSlot {
   font-weight: 700;
 }
 
+.metricDecisionCard {
+  display: grid;
+  gap: 0.875rem;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      circle at 88% 18%,
+      rgba(82, 96, 254, 0.18),
+      transparent 5.5rem
+    ),
+    linear-gradient(135deg, var(--color-surface-muted), #ffffff);
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+}
+
+.metricDecisionCard > div:first-child {
+  display: grid;
+  justify-items: start;
+  gap: 0.625rem;
+}
+
+.metricDecisionCard p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 800;
+}
+
+.metricDecisionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.metricDecisionTags span {
+  border-radius: 999rem;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+
+.metricCheckSection {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(82, 96, 254, 0.18),
+      transparent 5.25rem
+    ),
+    linear-gradient(135deg, var(--color-surface-muted), #ffffff);
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+}
+
+.metricCheckHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.metricCheckHeader > span {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 800;
+}
+
+.metricCheckLead {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 800;
+}
+
+.metricCheckList {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.metricCheckList li {
+  position: relative;
+  margin: 0;
+  padding-left: 0.875rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.metricCheckList li::before {
+  content: "";
+  position: absolute;
+  top: 0.5625rem;
+  left: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999rem;
+  background: var(--color-primary);
+}
+
 .metricDetailGrid {
   display: grid;
   gap: 1rem;
@@ -674,6 +870,163 @@ img.activityImageSlot {
   line-height: 1.25rem;
 }
 
+.metricInsightList {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.metricInsightCard {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 0.25rem 1rem rgba(31, 41, 51, 0.05);
+  padding: 0.875rem;
+}
+
+.metricInsightHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.metricInsightIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 1rem;
+  background: rgba(244, 245, 255, 0.82);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.metricInsightIcon img {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  display: block;
+}
+
+.metricInsightHeader strong {
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+}
+
+.metricInsightValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.metricInsightValues div {
+  min-width: 0;
+  border-radius: 0.875rem;
+  background: var(--color-surface-muted);
+  padding: 0.6875rem 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.metricInsightValues span {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+  font-weight: 700;
+}
+
+.metricInsightValues strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.0625rem;
+  line-height: 1.375rem;
+  font-weight: 800;
+}
+
+.metricInsightCard p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.metricCompactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.metricCompactCard {
+  min-width: 0;
+  display: grid;
+  gap: 0.625rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 0.25rem 1rem rgba(31, 41, 51, 0.05);
+  padding: 0.75rem;
+}
+
+.metricCompactHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.metricCompactIcon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.metricCompactHeader strong {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metricCompactValues {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.metricCompactValues div {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.metricCompactValues span {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.metricCompactValues strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-size: 0.9375rem;
+  line-height: 1.125rem;
+  font-weight: 800;
+}
+
 .compactInfoSection {
   display: grid;
   gap: 0.5rem;
@@ -687,6 +1040,12 @@ img.activityImageSlot {
   color: var(--color-text);
   font-size: 0.75rem;
   line-height: 1.25rem;
+}
+
+.prepInfoSection {
+  background:
+    linear-gradient(135deg, rgba(82, 96, 254, 0.08), rgba(200, 113, 253, 0.08)),
+    var(--color-surface-muted);
 }
 
 .supportMetricGrid {
@@ -759,43 +1118,127 @@ img.activityImageSlot {
   line-height: 1rem;
 }
 
-.hourlyWeatherRow {
+.hourlyFlowSummary {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.75rem;
   border-radius: 1rem;
   background: var(--color-surface-muted);
+  padding: 1rem;
+}
+
+.hourlyFlowSummary h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+  font-weight: 800;
+}
+
+.hourlyFlowPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hourlyFlowPills span {
+  border-radius: 999rem;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+
+.hourlyWeatherList {
+  display: grid;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.hourlyWeatherRow {
+  display: grid;
+  grid-template-columns: 3.625rem minmax(0, 1fr);
+  gap: 0.625rem;
   padding: 0.75rem;
 }
 
+.hourlyWeatherRow + .hourlyWeatherRow {
+  border-top: 1px solid var(--color-divider);
+}
+
+.hourlyWeatherTime {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.hourlyWeatherDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999rem;
+  flex: 0 0 auto;
+}
+
+.hourlyWeatherTime strong {
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  font-weight: 800;
+}
+
+.hourlyWeatherBody {
+  min-width: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
 .hourlyWeatherMain {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.hourlyWeatherMain strong {
-  color: var(--color-text);
-  font-size: 1rem;
-  line-height: 1.5rem;
-}
-
-.hourlyWeatherMain span {
+.hourlyWeatherMain > span {
+  min-width: 0;
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  line-height: 1rem;
-  text-align: right;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hourlyWeatherMeta {
-  display: grid;
-  grid-template-columns: minmax(5rem, 1fr) repeat(4, auto);
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   line-height: 1rem;
   white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hourlyWeatherMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+}
+
+.hourlyWeatherMeta svg {
+  color: var(--color-text-tertiary);
+  flex: 0 0 auto;
+}
+
+.hourlyWeatherMeta::-webkit-scrollbar {
+  display: none;
 }
 
 .activityDetailHero {

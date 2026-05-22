@@ -160,9 +160,9 @@ DISCOVER 추천 계산
 
 ```text
 로그인 UI 표시
-선호 활동 1~5개 선택 가능
+선호 활동 최대 3개 선택 가능
 비로그인 상태에서는 local/session preference 저장
-로그인 상태에서는 user_preferences 저장
+로그인 상태에서는 user_preferences 저장 (후속)
 TODAY가 선호 활동 상태를 반영
 빌드/타입체크 통과
 ```
@@ -174,11 +174,31 @@ TODAY가 선호 활동 상태를 반영
 ## 목표
 TODAY를 실제 데이터 호출 구조에 맞춘다. 초기에는 Edge Function mock 또는 stub으로 연결하고, 이후 실제 외부 API는 Edge Function에서만 호출한다.
 
+## 현재 구현 상태
+
+```text
+status: 부분 완료
+```
+
+완료/진행된 항목:
+
+```text
+TODAY payload type 정의 완료
+src/features/today/todayPayload.ts 생성
+TODAY 화면이 typed payload 기반으로 렌더링
+GPS 권한/위치 오류 상태 구현
+client localStorage 30분 cache 구현
+위치/날씨 실패 시 mock fallback 유지
+핵심 지표 current/peak 구조 구현
+```
+
+현재 구현은 `today.service.ts`라는 파일명 대신 `src/features/today/todayPayload.ts`를 service/type/fallback layer로 사용한다.
+
 ## 구현 범위
 
 ```text
 TODAY payload type 정의
-today.service.ts 생성
+today.service.ts 생성 또는 todayPayload.ts service layer 유지
 getTodayPayload mock service
 GPS 권한 플로우
 위치 권한 거부/오류 상태
@@ -189,8 +209,8 @@ Loading / Error / Permission State 적용
 
 ```text
 Open-Meteo / KMA / AirKorea 직접 호출
-실제 Edge Function 완성
-Supabase weather cache 실제 연동
+client-side 외부 API 직접 호출
+DISCOVER/D-DAY 실제 계산
 ```
 
 ## 완료 기준
@@ -343,6 +363,37 @@ SidebarDrawer 완성
 
 ## 목표
 mock을 실제 Edge Function과 Supabase 데이터로 연결한다.
+
+## 현재 구현 상태
+
+```text
+status: TODAY 한정 부분 완료
+```
+
+완료/진행된 항목:
+
+```text
+supabase/functions/get_today_payload 생성
+supabase/functions/_shared/cors.ts 생성
+supabase/functions/_shared/reverseGeocode.ts 생성
+Open-Meteo forecast / air-quality 호출 구현
+Nominatim reverse geocoding 구현
+dong_weather_cache read/write 구현
+supabase/migrations/20260519153000_create_today_cache_tables.sql 생성
+frontend → get_today_payload 호출 구조 구현
+service_role key는 client에 노출하지 않음
+```
+
+남은 항목:
+
+```text
+Supabase Edge Function 실제 배포/환경변수 확인
+calculate_discover_recommendations
+create_dday_event
+update_dday_forecast_snapshot
+weather_score_logs insert 연결
+정식 geohash precision 결정
+```
 
 ## 구현 범위
 

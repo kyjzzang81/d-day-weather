@@ -87,14 +87,17 @@ log_weather_score
 TODAY 진입
 → GPS 권한 확인
 → GPS lat/lon 획득
-→ reverse geocoding으로 동 단위 표시명 생성
 → get_today_payload 호출
-→ cache 확인
+→ Edge Function에서 reverse geocoding으로 동 단위 표시명 생성
+→ dong_weather_cache 확인
 → 필요 시 외부 API 호출
 → Weather Score Engine 계산
 → optional weather_score_logs 저장
 → TODAY payload 반환
 ```
+
+현재 구현은 클라이언트에서 외부 날씨 API를 직접 호출하지 않는다.  
+브라우저는 Supabase Edge Function만 호출하고, Open-Meteo / reverse geocoding / Supabase cache 접근은 Edge Function 책임이다.
 
 ## 5-2. get_today_payload Input
 
@@ -107,6 +110,58 @@ TODAY 진입
   "theme_overlay": "family_kids"
 }
 ```
+
+현재 프론트 호출은 `theme_overlay`를 아직 보내지 않는다.  
+선호 활동은 localStorage에서 읽은 `preferred_activity_categories`를 전달한다.
+
+## 5-2-1. get_today_payload Current Response
+
+현재 TODAY 화면은 아래 typed payload를 기대한다.
+
+```json
+{
+  "source": "live",
+  "locationLabel": "성수동",
+  "updatedAtLabel": "5월 22일 (금) 09:30 기준",
+  "grade": "gorgeous",
+  "reasons": ["비 가능성이 낮아 외출 부담이 적어요", "바람과 공기 상태가 무난해요"],
+  "metrics": [
+    {
+      "label": "강수확률",
+      "current": { "value": "20%", "tone": "great" },
+      "peak": { "value": "35%", "tone": "good" },
+      "detail": "지금은 20%지만, 오늘 낮 중 최대 35%까지 예보돼요."
+    }
+  ],
+  "supportMetrics": [{ "label": "습도", "value": "52%" }],
+  "prepHints": ["우산은 선택"],
+  "activityImpacts": [{ "label": "피크닉/도시산책", "summary": "가볍게 걷기 좋아요", "grade": "great" }],
+  "dayFlow": [{ "label": "오전", "value": "추천", "grade": "great" }],
+  "activities": [],
+  "ddaySummary": null,
+  "hourlyWeather": []
+}
+```
+
+raw 0-100 score는 클라이언트에 표시하지 않는다.
+
+## 5-2-2. 현재 Edge Function 구현
+
+```text
+supabase/functions/get_today_payload
+├── Open-Meteo forecast
+│   └── temperature_2m, precipitation, precipitation_probability,
+│       weather_code, wind_speed_10m, relative_humidity_2m,
+│       sunrise, sunset
+├── Open-Meteo air-quality
+│   └── pm2_5, uv_index
+├── Nominatim reverse geocoding
+├── dong_weather_cache read/write
+└── TODAY payload 생성
+```
+
+서버 캐시는 `dongAreaId = geo_{lat.toFixed(3)}_{lon.toFixed(3)}` 기준으로 동작한다.  
+이 값은 MVP용 geohash 대체 key이며, 정식 geohash precision은 후속 결정 사항이다.
 
 ## 5-3. GPS 로그 정책
 
@@ -354,6 +409,15 @@ activity_categories
 cities list
 ```
 
+현재 프론트 구현:
+
+```text
+TODAY payload cache key: ggg.todayPayload.v1
+TTL: 30분
+invalidate 기준: preferred_activity_categories 변경 또는 skipCache=true
+activity preferences key: ggg.activityPreferences.v1
+```
+
 ## 12-2. Server Cache
 
 ```text
@@ -361,6 +425,9 @@ city_weather_cache
 dong_weather_cache
 forecast_weather
 ```
+
+현재 `get_today_payload`는 `dong_weather_cache`를 우선 사용한다.  
+`SUPABASE_URL`과 `SUPABASE_SERVICE_ROLE_KEY`가 Edge Function 환경변수에 없으면 cache read/write를 건너뛰고 live payload만 반환한다.
 
 ## 12-3. Invalidation
 

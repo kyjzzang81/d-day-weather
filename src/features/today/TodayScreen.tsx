@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { CloudFog, CloudRain, Droplets, Thermometer, Wind, type LucideIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { BottomSheet } from "../../components/common/BottomSheet";
-import { DotIndicator } from "../../components/common/DotIndicator";
 import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
 import { GradeBadge } from "../../components/common/GradeBadge";
@@ -43,6 +43,28 @@ const activityIconByCategory: Record<ActivityCategoryCode, string> = {
   indoor: activityIndoorIcon,
 };
 
+const metricIconByLabel: Record<string, LucideIcon> = {
+  강수확률: CloudRain,
+  강수량: Droplets,
+  바람: Wind,
+  미세먼지: CloudFog,
+};
+
+const getMetricCheckCopy = (label: string, currentValue: string, peakValue: string) => {
+  switch (label) {
+    case "강수확률":
+      return `오후 최대 ${peakValue}예요. 비가 올 수도 있지만 일정 전체를 접을 정도는 아니고, 접이식 우산이면 충분한 수준이에요.`;
+    case "강수량":
+      return `오늘 최대 ${peakValue}는 바닥이 살짝 젖는 정도의 약한 비예요. 이동과 산책에는 큰 부담이 적어요.`;
+    case "바람":
+      return `최대 ${peakValue}는 나뭇잎이 조금 흔들리는 약한 바람이에요. 걷거나 사진 찍기엔 무난해요.`;
+    case "미세먼지":
+      return `지금 ${currentValue}, 오늘 최대 ${peakValue} 수준이에요. 오래 걷는 일정에도 큰 부담은 낮아요.`;
+    default:
+      return "";
+  }
+};
+
 export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
   const [payload, setPayload] = useState<TodayPayload>(mockTodayPayload);
@@ -57,7 +79,6 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   );
   const {
     activities,
-    activityImpacts,
     dayFlow,
     ddaySummary,
     hourlyWeather,
@@ -74,6 +95,12 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   );
   const todayGrade = payload.grade;
   const heroVisual = getGradeVisual(todayGrade, "today");
+  const hasPoorDustHour = hourlyWeather.some((item) =>
+    ["나쁨", "매우나쁨"].includes(item.pm25),
+  );
+  const flowPrepHints = hasPoorDustHour
+    ? Array.from(new Set([...prepHints, "마스크"]))
+    : prepHints;
 
   const refreshTodayPayload = () => {
     setIsLoading(true);
@@ -176,11 +203,13 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                 </p>
                 <h1
                   className="heroGradeTitle"
-                  style={{ color: heroVisual.color }}
+                  style={{
+                    color: heroVisual.color,
+                    background: `linear-gradient(to top, ${heroVisual.softColor} 38%, transparent 38%)`,
+                  }}
                 >
                   {heroVisual.label}
                 </h1>
-                <DotIndicator grade={todayGrade} />
                 <ul className="reasonList">
                   {reasons.map((reason) => (
                     <li key={reason}>{reason}</li>
@@ -224,42 +253,37 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                     : null;
                   const valuesMatch =
                     metric.current.value === metric.peak.value;
+                  const statusColor = peakTone?.color ?? currentTone?.color ?? colors.textTertiary;
 
                   return (
                     <article
                       className="miniCard metricDualCard"
                       key={metric.label}
                     >
-                      <p className="metricDualCardTitle">{metric.label}</p>
+                      <div className="metricDualCardHeader">
+                        <span
+                          className="metricStatusDot"
+                          style={{ background: statusColor }}
+                          aria-hidden="true"
+                        />
+                        <p className="metricDualCardTitle">{metric.label}</p>
+                      </div>
                       {valuesMatch ? (
                         <strong
                           className="metricDualValueCurrent"
-                          style={{
-                            color: currentTone?.color ?? colors.textPrimary,
-                          }}
                         >
                           {metric.current.value}
                         </strong>
                       ) : (
                         <div className="metricDualValues">
-                          <strong
-                            className="metricDualValueCurrent"
-                            style={{
-                              color: currentTone?.color ?? colors.textPrimary,
-                            }}
-                          >
+                          <strong className="metricDualValueCurrent">
                             {metric.current.value}
                           </strong>
                           <div className="metricDualPeakBlock">
                             <span className="metricDualPeakLabel">
                               오늘 최대
                             </span>
-                            <span
-                              className="metricDualPeakValue"
-                              style={{
-                                color: peakTone?.color ?? colors.textSecondary,
-                              }}
-                            >
+                            <span className="metricDualPeakValue">
                               {metric.peak.value}
                             </span>
                           </div>
@@ -282,27 +306,30 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                   자세히 보기
                 </button>
               </div>
-              <div className="dayFlowTimeline">
-                <div className="dayFlowRail" aria-hidden="true" />
-                {dayFlow.map((item) => {
+              <div className="dayFlowSummaryCard">
+                <div className="dayFlowSummaryCopy">
+                  <strong>오늘은 오전부터 오후까지 무난해요</strong>
+                  <span>
+                    일출 {dayFlow[0]?.value ?? "-"} · 일몰 {dayFlow[4]?.value ?? "-"}
+                  </span>
+                </div>
+                <div className="dayFlowSegments">
+                  {dayFlow.slice(1, 4).map((item) => {
                   const visual = getGradeVisual(item.grade);
 
                   return (
-                    <article className="dayFlowPoint" key={item.label}>
+                    <article className="dayFlowSegment" key={item.label}>
                       <span
-                        className="dayFlowDot"
+                        className="dayFlowSegmentDot"
                         style={{ background: visual.color }}
+                        aria-hidden="true"
                       />
-                      <span className="dayFlowLabel">{item.label}</span>
-                      <strong
-                        className="dayFlowValue"
-                        style={{ color: visual.color }}
-                      >
-                        {item.value}
-                      </strong>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
                     </article>
                   );
-                })}
+                  })}
+                </div>
               </div>
             </section>
 
@@ -399,21 +426,61 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
       >
         <div className="sheetStack">
           {sheetType === "flow" ? (
-            hourlyWeather.map((item) => (
-              <div className="hourlyWeatherRow" key={item.time}>
-                <div className="hourlyWeatherMain">
-                  <strong>{item.time}</strong>
-                  <span>{item.summary}</span>
+            <>
+              <section className="hourlyFlowSummary">
+                <h3>오전부터 오후까지 무난하고, 저녁엔 조금 선선해져요.</h3>
+                <div className="hourlyFlowPills">
+                  <span>일출 {dayFlow[0]?.value ?? "-"}</span>
+                  <span>일몰 {dayFlow[4]?.value ?? "-"}</span>
                 </div>
-                <div className="hourlyWeatherMeta">
-                  <GradeBadge grade={item.grade} />
-                  <span>{item.temperature}</span>
-                  <span>비 {item.rainProbability}</span>
-                  <span>바람 {item.wind}</span>
-                  <span>먼지 {item.pm25}</span>
+              </section>
+              <section className="hourlyWeatherList">
+                {hourlyWeather.map((item) => {
+                  const visual = getGradeVisual(item.grade);
+
+                  return (
+                    <div className="hourlyWeatherRow" key={item.time}>
+                      <div className="hourlyWeatherTime">
+                        <span
+                          className="hourlyWeatherDot"
+                          style={{ background: visual.color }}
+                          aria-hidden="true"
+                        />
+                        <strong>{item.time}</strong>
+                      </div>
+                      <div className="hourlyWeatherBody">
+                        <div className="hourlyWeatherMain">
+                          <span>{item.summary}</span>
+                          <GradeBadge grade={item.grade} />
+                        </div>
+                        <div className="hourlyWeatherMeta">
+                          <span aria-label={`온도 ${item.temperature}`}>
+                            <Thermometer size={13} strokeWidth={2.2} aria-hidden="true" />
+                            {item.temperature}
+                          </span>
+                          <span aria-label={`비 ${item.rainProbability}`}>
+                            <CloudRain size={13} strokeWidth={2.2} aria-hidden="true" />
+                            {item.rainProbability}
+                          </span>
+                          <span aria-label={`바람 ${item.wind}`}>
+                            <Wind size={13} strokeWidth={2.2} aria-hidden="true" />
+                            {item.wind}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </section>
+              <section className="compactInfoSection prepInfoSection hourlyPrepSection">
+                <h3>준비물</h3>
+                <div className="prepHintList">
+                  {flowPrepHints.map((hint) => (
+                    <span key={hint}>{hint}</span>
+                  ))}
                 </div>
-              </div>
-            ))
+              </section>
+            </>
           ) : sheetType === "activity" && selectedActivity ? (
             <>
               <div className="activityDetailHero">
@@ -457,21 +524,63 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
             </>
           ) : (
             <>
-              <section className="metricDecisionSummary">
-                <p>오늘은 비보다 바람과 오후 구름만 조금 보면 돼요.</p>
+              <section className="metricCheckSection">
+                <div className="metricCheckHeader">
+                  <span>오늘 체크 포인트</span>
+                  <GradeBadge grade={todayGrade} />
+                </div>
+                <p className="metricCheckLead">
+                  외출 스코어는 {getGradeVisual(todayGrade).label}이에요.
+                </p>
+                <ul className="metricCheckList">
+                  {metrics.map((metric) => (
+                    <li key={metric.label}>
+                      {getMetricCheckCopy(metric.label, metric.current.value, metric.peak.value)}
+                    </li>
+                  ))}
+                </ul>
               </section>
-              <section className="metricDetailGrid">
+
+              <section className="compactInfoSection prepInfoSection">
+                <h3>준비물</h3>
+                <div className="prepHintList">
+                  {prepHints.map((hint) => (
+                    <span key={hint}>{hint}</span>
+                  ))}
+                </div>
+              </section>
+
+              <section className="metricCompactGrid" aria-label="오늘 날씨 지표">
                 {metrics.map((metric) => (
-                  <article className="metricDetailCard" key={metric.label}>
-                    <div className="metricDetailValues">
-                      <span>{metric.label}</span>
-                      <strong>지금 {metric.current.value}</strong>
-                      <strong>오늘 최대 {metric.peak.value}</strong>
+                  <article className="metricCompactCard" key={metric.label}>
+                    <div className="metricCompactHeader">
+                      <span className="metricCompactIcon" aria-hidden="true">
+                        {(() => {
+                          const Icon = metricIconByLabel[metric.label] ?? CloudFog;
+                          return <Icon size={18} strokeWidth={2.2} />;
+                        })()}
+                      </span>
+                      <strong>{metric.label}</strong>
                     </div>
-                    <p>{metric.detail}</p>
+
+                    <div className="metricCompactValues">
+                      <div>
+                        <span>지금</span>
+                        <strong style={{ color: metric.current.tone ? getGradeVisual(metric.current.tone).color : colors.textPrimary }}>
+                          {metric.current.value}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>오늘 최대</span>
+                        <strong style={{ color: metric.peak.tone ? getGradeVisual(metric.peak.tone).color : colors.textPrimary }}>
+                          {metric.peak.value}
+                        </strong>
+                      </div>
+                    </div>
                   </article>
                 ))}
               </section>
+
               <section className="compactInfoSection">
                 <h3>보조 지표</h3>
                 <div className="supportMetricGrid">
@@ -479,28 +588,6 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                     <div key={metric.label}>
                       <span>{metric.label}</span>
                       <strong>{metric.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <section className="compactInfoSection">
-                <h3>준비물 힌트</h3>
-                <div className="prepHintList">
-                  {prepHints.map((hint) => (
-                    <span key={hint}>{hint}</span>
-                  ))}
-                </div>
-              </section>
-              <section className="compactInfoSection">
-                <h3>활동 영향</h3>
-                <div className="activityImpactList">
-                  {activityImpacts.map((impact) => (
-                    <div className="activityImpactRow" key={impact.label}>
-                      <div>
-                        <strong>{impact.label}</strong>
-                        <span>{impact.summary}</span>
-                      </div>
-                      <GradeBadge grade={impact.grade} />
                     </div>
                   ))}
                 </div>

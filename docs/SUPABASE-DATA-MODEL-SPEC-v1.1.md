@@ -186,6 +186,28 @@ create table if not exists dong_weather_cache (
 );
 ```
 
+현재 프로젝트에는 아래 실제 migration 파일이 생성되어 있다.
+
+```text
+supabase/migrations/20260519153000_create_today_cache_tables.sql
+```
+
+현재 migration 포함 내용:
+
+```text
+dong_areas
+dong_weather_cache
+idx_dong_areas_geohash
+idx_dong_areas_city_id
+idx_dong_areas_name
+idx_dong_weather_cache_expires_at
+RLS enable
+dong_areas public read policy
+```
+
+`dong_weather_cache`는 RLS를 enable하지만 broad anon/authenticated policy를 두지 않는다.  
+read/write는 `get_today_payload` Edge Function에서 service role로 처리한다.
+
 ---
 
 ## 6-4. `activity_categories`
@@ -536,6 +558,15 @@ dong_weather_cache write
 weather_score_logs insert/read for analytics
 external API refresh
 ```
+
+현재 구현의 `get_today_payload` Edge Function은 service role 환경변수가 있을 때만 Supabase REST로 cache를 읽고 쓴다.
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY 또는 SERVICE_ROLE_KEY
+```
+
+환경변수가 없으면 cache 접근을 건너뛰고 Open-Meteo live payload를 반환한다.
 
 `weather_score_logs`는 클라이언트 직접 전체 조회를 허용하지 않는다.  
 사용자 본인의 로그 조회가 필요해지면 제한된 view 또는 RPC를 별도로 둔다.
