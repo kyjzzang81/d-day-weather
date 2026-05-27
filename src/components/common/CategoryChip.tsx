@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
-import { colors, radius, shadows, spacing, typography } from "../../design/tokens";
+import { colors, radius, spacing, typography } from "../../design/tokens";
 
 interface CategoryChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
@@ -9,20 +9,20 @@ interface CategoryChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function CategoryChip({ label, selected = false, icon, style, ...props }: CategoryChipProps) {
   const chipStyle: CSSProperties = {
-    minHeight: 44,
-    borderRadius: radius.lg,
-    border: `1px solid ${selected ? colors.success : colors.border}`,
-    background: selected ? colors.successSoft : colors.surface,
-    color: selected ? colors.textPrimary : colors.textSecondary,
+    minHeight: 42,
+    borderRadius: radius.pill,
+    border: `1px solid ${selected ? colors.accent : colors.border}`,
+    background: colors.surface,
+    color: selected ? colors.accent : colors.textPrimary,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
     padding: `${spacing.sm}px ${spacing.md}px`,
-    boxShadow: selected ? shadows.card : "none",
+    boxShadow: "none",
     cursor: "pointer",
     ...typography.body2,
-    fontWeight: selected ? 700 : 500,
+    fontWeight: selected ? 800 : 600,
     ...style
   };
 

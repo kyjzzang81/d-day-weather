@@ -1,18 +1,23 @@
-import type { CSSProperties } from "react";
-import { Bell, Menu } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
+import { Bell, MapPin, Menu, RefreshCw } from "lucide-react";
 import { colors, spacing, typography } from "../../design/tokens";
 
 interface AppHeaderProps {
   title?: string;
   locationLabel?: string;
   updatedAtLabel?: string;
+  menuPlacement?: "left" | "right";
   onMenuClick?: () => void;
+  beforeNotification?: ReactNode;
 }
 
 export function AppHeader({
+  title,
   locationLabel,
   updatedAtLabel,
+  menuPlacement = "left",
   onMenuClick,
+  beforeNotification,
 }: AppHeaderProps) {
   const headerStyle: CSSProperties = {
     minHeight: 64,
@@ -23,17 +28,20 @@ export function AppHeader({
     gap: spacing.md,
     padding: `${spacing.md}px 0`,
   };
+  const menuButton = (
+    <button
+      className="iconButton"
+      type="button"
+      aria-label="메뉴 열기"
+      onClick={onMenuClick}
+    >
+      <Menu aria-hidden="true" size={20} strokeWidth={2.2} />
+    </button>
+  );
 
   return (
-    <header style={headerStyle}>
-      <button
-        className="iconButton"
-        type="button"
-        aria-label="메뉴 열기"
-        onClick={onMenuClick}
-      >
-        <Menu aria-hidden="true" size={20} strokeWidth={2.2} />
-      </button>
+    <header className="appHeader" style={headerStyle}>
+      {menuPlacement === "left" ? menuButton : null}
       <div
         style={{
           minWidth: 0,
@@ -44,23 +52,37 @@ export function AppHeader({
         }}
       >
         {locationLabel ? (
-          <div style={{ minWidth: 0 }}>
-            <p
-              style={{
-                margin: 0,
-                color: colors.textPrimary,
-                ...typography.caption,
-              }}
-            >
+          <div className="appHeaderLocation">
+            <strong>
+              <MapPin size={15} strokeWidth={2.3} aria-hidden="true" />
               {locationLabel}
-              {updatedAtLabel ? ` · ${updatedAtLabel}` : ""}
-            </p>
+            </strong>
+            {updatedAtLabel ? (
+              <span>
+                {updatedAtLabel}
+                <RefreshCw size={11} strokeWidth={2.4} aria-hidden="true" />
+              </span>
+            ) : null}
           </div>
-        ) : null}
+        ) : (
+          <p
+            style={{
+              margin: 0,
+              color: colors.textPrimary,
+              ...typography.title3,
+            }}
+          >
+            {title ?? "ggg"}
+          </p>
+        )}
       </div>
-      <button className="iconButton" type="button" aria-label="알림">
-        <Bell aria-hidden="true" size={19} strokeWidth={2.2} />
-      </button>
+      <div className="appHeaderActions">
+        {beforeNotification}
+        <button className="iconButton" type="button" aria-label="알림">
+          <Bell aria-hidden="true" size={19} strokeWidth={2.2} />
+        </button>
+        {menuPlacement === "right" ? menuButton : null}
+      </div>
     </header>
   );
 }

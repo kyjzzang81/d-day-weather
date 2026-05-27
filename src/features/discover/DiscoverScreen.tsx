@@ -1,93 +1,342 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "../../components/common/BottomSheet";
 import { CategoryChip } from "../../components/common/CategoryChip";
-import { GradeBadge } from "../../components/common/GradeBadge";
 import { PrimaryButton } from "../../components/common/PrimaryButton";
 import { SearchBar } from "../../components/common/SearchBar";
 import { AppHeader } from "../../components/layout/AppHeader";
-import { colors, spacing, typography } from "../../design/tokens";
-import discoverFlowP0Image from "../../../assets/discover-flow/optimized/discover-flow-p0.webp";
-import discoverFlowP1Image from "../../../assets/discover-flow/optimized/discover-flow-p1.webp";
-import discoverFlowP2Image from "../../../assets/discover-flow/optimized/discover-flow-p2.webp";
-import discoverFlowP3Image from "../../../assets/discover-flow/optimized/discover-flow-p3.webp";
+import { DateSelectSheet } from "../dateSignal/DateSelectSheet";
+import {
+  getTodayDateContext,
+  getWeekendDateContext,
+} from "../dateSignal/dateSignalUtils";
+import type { DateContext } from "../dateSignal/dateSignalTypes";
+import { LocalContentCard } from "../localContent/LocalContentCard";
+import {
+  defaultDiscoverFilters,
+  discoverTagFilterGroups,
+  searchLocalContents,
+  type DiscoverFilterGroupId,
+} from "../localContent/localContentUtils";
+import type { ContentTypeTag, LocalContent } from "../localContent/localContentTypes";
+import { SituationDropdown } from "../outingMode/OutingModeSheet";
+import { readOutingMode, writeOutingMode } from "../outingMode/outingModeStore";
+import type { OutingMode } from "../outingMode/outingModeTypes";
+import { SaveReminderSheet } from "../savedContents/SaveReminderSheet";
 
-type DiscoverFlow = "p0" | "p1" | "p2" | "p3";
-
-const flowImageByCode: Record<DiscoverFlow, string> = {
-  p0: discoverFlowP0Image,
-  p1: discoverFlowP1Image,
-  p2: discoverFlowP2Image,
-  p3: discoverFlowP3Image
+const typeIconByValue: Record<string, string> = {
+  all: "●",
+  popup: "P",
+  festival: "F",
+  performance: "♪",
+  market: "M",
+  village_tour: "길",
+  fair: "E",
+  exhibition: "A",
+  program: "C",
+  trekking: "T",
+  hiking: "산",
+  running: "R",
+  leisure_sports: "L",
+  sports_watching: "S",
+  outdoor_game: "G",
+  theme_cafe: "☕",
+  culture_complex: "B",
+  select_shop: "샵",
 };
 
-const flows: Array<{ code: DiscoverFlow; title: string; description: string; tag: string; image: string }> = [
-  { code: "p0", title: "요즘 어디가 좋아?", description: "요즘 가기 좋은 인기 여행지를 추천받아요", tag: "#Best Picks", image: flowImageByCode.p0 },
-  { code: "p1", title: "어디로 떠날까?", description: "내가 원하는 시기를 추천받아요", tag: "#시기 추천", image: flowImageByCode.p1 },
-  { code: "p2", title: "어디로 가지?", description: "내가 원하는 시기에 추천 지역을 찾아요", tag: "#지역 추천", image: flowImageByCode.p2 },
-  { code: "p3", title: "뭘 하고, 어디를 가지?", description: "날짜와 지역에서 추천 활동을 찾죠", tag: "#활동/장소 추천", image: flowImageByCode.p3 }
-];
+const contentTypeFilterGroup = discoverTagFilterGroups.find(
+  (group) => group.id === "contentTypeTags",
+);
 
-const chips = ["피크닉/도시산책", "카페/맛집", "사진/뷰", "해변"];
+const sheetFilterGroups = discoverTagFilterGroups.filter(
+  (group) => group.id !== "contentTypeTags",
+);
+
+function getDiscoverRecommendationTitle(context: DateContext) {
+  if (context.targetDate === getTodayDateContext().targetDate) {
+    return "오늘의 추천";
+  }
+  if (context.targetDate === getWeekendDateContext().targetDate) {
+    return "이번 주말 추천";
+  }
+  return `${context.label.replace(" 기준", "")} 추천`;
+}
 
 export function DiscoverScreen({ onMenuClick }: { onMenuClick: () => void }) {
-  const [flow, setFlow] = useState<DiscoverFlow | null>(null);
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const selectedFlow = flows.find((item) => item.code === flow) ?? null;
-  const openFlow = (nextFlow: DiscoverFlow) => {
-    setFlow(nextFlow);
-    setQuery("");
+  const [dateContext, setDateContext] = useState<DateContext>(() =>
+    getTodayDateContext(),
+  );
+  const [dateSheetOpen, setDateSheetOpen] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [mode, setMode] = useState<OutingMode>(() => readOutingMode());
+  const [activeFilters, setActiveFilters] = useState(defaultDiscoverFilters);
+  const [saveTarget, setSaveTarget] = useState<LocalContent | null>(null);
+  const [saveReminderOpen, setSaveReminderOpen] = useState(false);
+  const [isSelectingSaveDate, setIsSelectingSaveDate] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+
+  const results = useMemo(
+    () => searchLocalContents(query, mode, activeFilters, dateContext),
+    [activeFilters, dateContext, mode, query],
+  );
+
+  const typeAvailabilityBase = useMemo(
+    () =>
+      searchLocalContents(query, mode, {
+        ...activeFilters,
+        contentTypeTags: "all",
+      }, dateContext),
+    [activeFilters, dateContext, mode, query],
+  );
+
+  const recommendationTitle = useMemo(
+    () => getDiscoverRecommendationTitle(dateContext),
+    [dateContext],
+  );
+
+  const contentTypeOptions = useMemo(() => {
+    const options = contentTypeFilterGroup?.options ?? [];
+    const withCount = options.map((option) => {
+      const count =
+        option.value === "all"
+          ? typeAvailabilityBase.length
+          : typeAvailabilityBase.filter((content) =>
+              content.contentTypeTags.includes(option.value as ContentTypeTag),
+            ).length;
+
+      return {
+        ...option,
+        count,
+      };
+    });
+
+    return withCount.sort((a, b) => {
+      if (a.value === "all") return -1;
+      if (b.value === "all") return 1;
+
+      const aEmpty = a.count === 0;
+      const bEmpty = b.count === 0;
+      if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
+
+      return options.findIndex((option) => option.value === a.value) -
+        options.findIndex((option) => option.value === b.value);
+    });
+  }, [typeAvailabilityBase]);
+
+  const changeMode = (nextMode: OutingMode) => {
+    setMode(nextMode);
+    writeOutingMode(nextMode);
   };
-  const closeFlow = () => setFlow(null);
+
+  const requestSave = (content: LocalContent) => {
+    setSaveTarget(content);
+    setIsSelectingSaveDate(true);
+    setDateSheetOpen(true);
+  };
+
+  const selectFilter = (groupId: DiscoverFilterGroupId, value: string) => {
+    setActiveFilters((current) => ({
+      ...current,
+      [groupId]: value,
+    }));
+  };
+
+  const selectDate = (nextContext: DateContext) => {
+    setDateContext(nextContext);
+    if (isSelectingSaveDate) {
+      window.setTimeout(() => setSaveReminderOpen(true), 0);
+    }
+  };
 
   return (
     <>
-      <AppHeader title="DISCOVER" onMenuClick={onMenuClick} />
+      <AppHeader
+        locationLabel="경기 파주시 금촌동"
+        updatedAtLabel="10:00 기준"
+        menuPlacement="right"
+        onMenuClick={onMenuClick}
+        beforeNotification={
+          <SituationDropdown mode={mode} onChange={changeMode} />
+        }
+      />
       <main className="screenStack">
-        <section className="discoverIntroBlock">
-          <h1 style={{ color: colors.textPrimary, margin: `${spacing.sm}px 0`, ...typography.title1 }}>
-            어떤 탐색을 원하시나요?
-          </h1>
-          <p style={{ color: colors.textSecondary, margin: 0, ...typography.body2 }}>
-            원하는 방식을 선택해 여행을 계획해보세요.
-          </p>
+        <SearchBar
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="지역이나 콘텐츠 검색"
+        />
+
+        <section className="sectionBlock">
+          <div className="discoverFilterBar">
+            <div className="dateSelectorRow" aria-label="빠른 날짜 선택">
+              <button
+                className="dateChip"
+                type="button"
+                data-active={
+                  dateContext.targetDate === getTodayDateContext().targetDate
+                }
+                onClick={() => setDateContext(getTodayDateContext())}
+              >
+                오늘
+              </button>
+              <button
+                className="dateChip"
+                type="button"
+                data-active={
+                  dateContext.targetDate === getWeekendDateContext().targetDate
+                }
+                onClick={() => setDateContext(getWeekendDateContext())}
+              >
+                이번 주말
+              </button>
+              <button
+                className="dateChip"
+                type="button"
+                onClick={() => setDateSheetOpen(true)}
+              >
+                날짜 선택
+              </button>
+            </div>
+            <button
+              className="discoverFilterTextButton"
+              type="button"
+              onClick={() => setFilterSheetOpen(true)}
+            >
+              필터
+            </button>
+          </div>
         </section>
 
-        <div className="flowGrid">
-          {flows.map((item) => (
-            <button
-              className="flowCardButton"
-              key={item.code}
-              type="button"
-              data-active={item.code === flow}
-              onClick={() => openFlow(item.code)}
-            >
-              <span className="flowCardCopy">
-                <strong>{item.title}</strong>
-                <span>{item.description}</span>
-                <em>{item.tag}</em>
-              </span>
-              <img className="flowImageSlot" src={item.image} alt="" aria-hidden="true" />
-            </button>
-          ))}
-        </div>
+        <section className="sectionBlock" aria-label="콘텐츠 유형">
+          <div className="contentTypeCarousel">
+            {contentTypeOptions.map((option) => {
+              const selected = activeFilters.contentTypeTags === option.value;
+              const state = selected
+                ? "active"
+                : option.count > 0
+                  ? "unactive"
+                  : "none";
 
+              return (
+                <button
+                  className="contentTypePill"
+                  key={option.value}
+                  type="button"
+                  data-state={state}
+                  disabled={state === "none"}
+                  onClick={() => selectFilter("contentTypeTags", option.value)}
+                >
+                  <span className="contentTypePillIcon" aria-hidden="true">
+                    {typeIconByValue[option.value] ?? option.label.slice(0, 1)}
+                  </span>
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="sectionBlock">
+          <div className="sectionTitleRow">
+            <h2>{recommendationTitle}</h2>
+            <span className="resultCountLabel">{results.length}개</span>
+          </div>
+          {savedMessage ? (
+            <p className="inlineStatusMessage">{savedMessage}</p>
+          ) : null}
+          {results.length > 0 ? (
+            <div className="localContentList">
+              {results.map((content) => (
+                <LocalContentCard
+                  key={content.id}
+                  content={content}
+                  basisLabel={dateContext.basisLabel}
+                  onClick={() => navigate(`/content/${content.id}`)}
+                  onSave={requestSave}
+                />
+              ))}
+            </div>
+          ) : (
+            <section className="noResultCard">
+              <strong>결과가 없어요.</strong>
+              <p>검색어를 줄이거나 조건을 전체로 바꿔보세요.</p>
+              <PrimaryButton
+                onClick={() => {
+                  setQuery("");
+                  setActiveFilters(defaultDiscoverFilters);
+                }}
+              >
+                전체 보기
+              </PrimaryButton>
+            </section>
+          )}
+        </section>
       </main>
 
-      <BottomSheet open={selectedFlow !== null} title={selectedFlow?.title ?? ""} onClose={closeFlow}>
-        <section className="discoverSheetContent">
-          <div className="sectionTitleRow">
-            <h2>{selectedFlow?.description}</h2>
-            <GradeBadge grade="great" context="discover" />
+      <DateSelectSheet
+        open={dateSheetOpen}
+        selected={dateContext}
+        onSelect={selectDate}
+        onClose={() => setDateSheetOpen(false)}
+      />
+
+      <BottomSheet
+        open={filterSheetOpen}
+        title="필터"
+        onClose={() => setFilterSheetOpen(false)}
+      >
+        <div className="discoverFilterSheet">
+          {sheetFilterGroups.map((group) => (
+            <section className="discoverTagGroup" key={group.id}>
+              <div className="discoverTagGroupHeader">
+                <h2>{group.title}</h2>
+              </div>
+              <div className="contentCategoryGrid">
+                {group.options.map((option) => (
+                  <CategoryChip
+                    key={`${group.id}-${option.value}`}
+                    label={option.label}
+                    selected={activeFilters[group.id] === option.value}
+                    onClick={() => selectFilter(group.id, option.value)}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+          <div className="discoverFilterSheetActions">
+            <button
+              className="discoverFilterResetButton"
+              type="button"
+              onClick={() => setActiveFilters(defaultDiscoverFilters)}
+            >
+              초기화
+            </button>
+            <PrimaryButton onClick={() => setFilterSheetOpen(false)}>
+              적용하기
+            </PrimaryButton>
           </div>
-          <SearchBar value={query} onChange={(event) => setQuery(event.target.value)} placeholder="지역이나 장소 검색" />
-          <div className="chipGrid">
-            {chips.map((chip, index) => (
-              <CategoryChip key={chip} label={chip} selected={index < 2} />
-            ))}
-          </div>
-          <PrimaryButton>추천 결과 보기</PrimaryButton>
-        </section>
+        </div>
       </BottomSheet>
+
+      <SaveReminderSheet
+        open={saveReminderOpen}
+        content={saveTarget}
+        dateContext={dateContext}
+        onClose={() => {
+          setSaveReminderOpen(false);
+          setSaveTarget(null);
+          setIsSelectingSaveDate(false);
+        }}
+        onSaved={() => {
+          setSavedMessage("저장했어요. 저장 탭에서 다시 볼 수 있어요.");
+          setSaveReminderOpen(false);
+          setSaveTarget(null);
+          setIsSelectingSaveDate(false);
+        }}
+      />
     </>
   );
 }

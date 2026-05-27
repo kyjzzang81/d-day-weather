@@ -22,8 +22,9 @@ export function PrimaryButton({
   const buttonStyle: CSSProperties = {
     width: fullWidth ? "100%" : "auto",
     border: 0,
-    borderRadius: radius.md,
-    padding: `${spacing.sm}px ${spacing.md}px`,
+    minHeight: 52,
+    borderRadius: radius.pill,
+    padding: `${spacing.md}px ${spacing.xl}px`,
     background: colors.accent,
     color: colors.textInverse,
     boxShadow: shadows.card,

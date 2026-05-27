@@ -1,69 +1,206 @@
-import { useEffect, useState } from "react";
-import { CloudFog, CloudRain, Droplets, Thermometer, Wind, type LucideIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { CloudRain, Thermometer, Wind } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import weatherClearDayIcon from "../../../assets/weather_icons/optimized/weather-clear-day.png";
+import weatherClearNightIcon from "../../../assets/weather_icons/optimized/weather-clear-night.png";
+import weatherCloudyIcon from "../../../assets/weather_icons/optimized/weather-cloudy.png";
+import weatherColdIcon from "../../../assets/weather_icons/optimized/weather-cold.png";
+import weatherDustIcon from "../../../assets/weather_icons/optimized/weather-dust.png";
+import weatherFogIcon from "../../../assets/weather_icons/optimized/weather-fog.png";
+import weatherHotIcon from "../../../assets/weather_icons/optimized/weather-hot.png";
+import weatherOvercastIcon from "../../../assets/weather_icons/optimized/weather-overcast.png";
+import weatherPartlyCloudyDayIcon from "../../../assets/weather_icons/optimized/weather-partly-cloudy-day.png";
+import weatherPartlyCloudyNightIcon from "../../../assets/weather_icons/optimized/weather-partly-cloudy-night.png";
+import weatherRainHeavyIcon from "../../../assets/weather_icons/optimized/weather-rain-heavy.png";
+import weatherRainLightIcon from "../../../assets/weather_icons/optimized/weather-rain-light.png";
+import weatherShowerIcon from "../../../assets/weather_icons/optimized/weather-shower.png";
+import weatherSleetIcon from "../../../assets/weather_icons/optimized/weather-sleet.png";
+import weatherSnowIcon from "../../../assets/weather_icons/optimized/weather-snow.png";
+import weatherThunderIcon from "../../../assets/weather_icons/optimized/weather-thunder.png";
+import weatherUnknownIcon from "../../../assets/weather_icons/optimized/weather-unknown.png";
+import weatherWindIcon from "../../../assets/weather_icons/optimized/weather-wind.png";
 import { BottomSheet } from "../../components/common/BottomSheet";
-import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
-import { GradeBadge } from "../../components/common/GradeBadge";
 import { LoadingSkeleton } from "../../components/common/LoadingSkeleton";
 import { PrimaryButton } from "../../components/common/PrimaryButton";
+import { SignalBadge } from "../../components/common/SignalBadge";
+import { SignalDot } from "../../components/common/SignalDot";
 import { AppHeader } from "../../components/layout/AppHeader";
 import { getGradeVisual } from "../../design/grade";
-import { colors, radius, shadows, typography } from "../../design/tokens";
 import { isLocationUnavailableError } from "../../lib/locationErrors";
-import { readActivityPreferences } from "../activityPreferences/activityPreferenceStore";
+import { getTodayDateContext } from "../dateSignal/dateSignalUtils";
+import type { DateContext } from "../dateSignal/dateSignalTypes";
+import { LocalContentCard } from "../localContent/LocalContentCard";
+import { getLocalContentRecommendations } from "../localContent/localContentUtils";
+import type { LocalContent } from "../localContent/localContentTypes";
+import { SituationDropdown } from "../outingMode/OutingModeSheet";
+import { readOutingMode, writeOutingMode } from "../outingMode/outingModeStore";
+import type { OutingMode } from "../outingMode/outingModeTypes";
+import { SaveReminderSheet } from "../savedContents/SaveReminderSheet";
+import { WeatherCheckGraphic } from "../weatherCheck/WeatherCheckGraphic";
+import { getWeatherCheckItems } from "../weatherCheck/weatherCheckUtils";
 import {
   loadTodayPayload,
   mockTodayPayload,
-  type Activity,
-  type ActivityCategoryCode,
+  type HourlyWeather,
+  type Metric,
   type TodayPayload,
 } from "./todayPayload";
-import activityBeachIcon from "../../../assets/activity-icons/optimized/activity-beach.webp";
-import activityCafeIcon from "../../../assets/activity-icons/optimized/activity-cafe.webp";
-import activityCampingIcon from "../../../assets/activity-icons/optimized/activity-camping.webp";
-import activityFestivalIcon from "../../../assets/activity-icons/optimized/activity-festival.webp";
-import activityHikingIcon from "../../../assets/activity-icons/optimized/activity-hiking.webp";
-import activityIndoorIcon from "../../../assets/activity-icons/optimized/activity-indoor.webp";
-import activityPhotoIcon from "../../../assets/activity-icons/optimized/activity-photo.webp";
-import activityScenicIcon from "../../../assets/activity-icons/optimized/activity-scenic.webp";
-import activitySpaIcon from "../../../assets/activity-icons/optimized/activity-spa.webp";
-import activityUrbanIcon from "../../../assets/activity-icons/optimized/activity-urban.webp";
 
-const activityIconByCategory: Record<ActivityCategoryCode, string> = {
-  beach: activityBeachIcon,
-  hiking: activityHikingIcon,
-  camping: activityCampingIcon,
-  scenic: activityScenicIcon,
-  photo: activityPhotoIcon,
-  urban: activityUrbanIcon,
-  cafe: activityCafeIcon,
-  festival: activityFestivalIcon,
-  spa: activitySpaIcon,
-  indoor: activityIndoorIcon,
+type SheetType = "time" | null;
+type WeatherVisualCategory =
+  | "clear_day"
+  | "clear_night"
+  | "partly_cloudy_day"
+  | "partly_cloudy_night"
+  | "cloudy"
+  | "overcast"
+  | "rain_light"
+  | "rain_heavy"
+  | "shower"
+  | "snow"
+  | "sleet"
+  | "thunder"
+  | "fog"
+  | "dust"
+  | "wind"
+  | "hot"
+  | "cold"
+  | "unknown";
+
+const weatherIconByCategory: Record<WeatherVisualCategory, string> = {
+  clear_day: weatherClearDayIcon,
+  clear_night: weatherClearNightIcon,
+  partly_cloudy_day: weatherPartlyCloudyDayIcon,
+  partly_cloudy_night: weatherPartlyCloudyNightIcon,
+  cloudy: weatherCloudyIcon,
+  overcast: weatherOvercastIcon,
+  rain_light: weatherRainLightIcon,
+  rain_heavy: weatherRainHeavyIcon,
+  shower: weatherShowerIcon,
+  snow: weatherSnowIcon,
+  sleet: weatherSleetIcon,
+  thunder: weatherThunderIcon,
+  fog: weatherFogIcon,
+  dust: weatherDustIcon,
+  wind: weatherWindIcon,
+  hot: weatherHotIcon,
+  cold: weatherColdIcon,
+  unknown: weatherUnknownIcon,
 };
 
-const metricIconByLabel: Record<string, LucideIcon> = {
-  강수확률: CloudRain,
-  강수량: Droplets,
-  바람: Wind,
-  미세먼지: CloudFog,
-};
+function getPercentValue(value: string) {
+  const match = value.match(/\d+/);
+  return match ? Number(match[0]) : 0;
+}
 
-const getMetricCheckCopy = (label: string, currentValue: string, peakValue: string) => {
-  switch (label) {
-    case "강수확률":
-      return `오후 최대 ${peakValue}예요. 비가 올 수도 있지만 일정 전체를 접을 정도는 아니고, 접이식 우산이면 충분한 수준이에요.`;
-    case "강수량":
-      return `오늘 최대 ${peakValue}는 바닥이 살짝 젖는 정도의 약한 비예요. 이동과 산책에는 큰 부담이 적어요.`;
-    case "바람":
-      return `최대 ${peakValue}는 나뭇잎이 조금 흔들리는 약한 바람이에요. 걷거나 사진 찍기엔 무난해요.`;
-    case "미세먼지":
-      return `지금 ${currentValue}, 오늘 최대 ${peakValue} 수준이에요. 오래 걷는 일정에도 큰 부담은 낮아요.`;
+function getWeatherVisualCategory(payload: TodayPayload): WeatherVisualCategory {
+  const rain = getMetric(payload.metrics, "강수확률")?.current.value ?? "";
+  const wind = getMetric(payload.metrics, "바람")?.current.value ?? "";
+  const dust = getMetric(payload.metrics, "미세먼지")?.current.value ?? "";
+  const feelsLike = payload.supportMetrics.find((metric) => metric.label === "체감온도")?.value ?? "";
+  const weatherText = payload.reasons.join(" ");
+  const rainPercent = getPercentValue(rain);
+  const temperature = getPercentValue(feelsLike);
+
+  if (weatherText.includes("소나기")) return "shower";
+  if (weatherText.includes("눈")) return "snow";
+  if (weatherText.includes("천둥")) return "thunder";
+  if (rainPercent >= 60) return "rain_heavy";
+  if (rainPercent >= 30 || weatherText.includes("비")) return "rain_light";
+  if (wind.includes("강")) return "wind";
+  if (dust.includes("나쁨")) return "dust";
+  if (weatherText.includes("안개")) return "fog";
+  if (temperature >= 30) return "hot";
+  if (temperature > 0 && temperature <= 5) return "cold";
+  if (payload.grade === "uhm") return "cloudy";
+  if (payload.grade === "gorgeous") return "clear_day";
+  return "partly_cloudy_day";
+}
+
+const getHeroCopy = (grade: TodayPayload["grade"]) => {
+  switch (grade) {
+    case "gorgeous":
+      return {
+        title: "오늘은 좋아요",
+        description: "비와 바람 부담이 크지 않아요.",
+      };
+    case "great":
+      return {
+        title: "오늘은 무난해요",
+        description: "가볍게 움직이기 좋은 흐름이에요.",
+      };
+    case "good":
+      return {
+        title: "조금 살펴보면 좋아요",
+        description: "오후 변화만 가볍게 확인해요.",
+      };
     default:
-      return "";
+      return {
+        title: "실내 중심이 좋아요",
+        description: "날씨 변화가 있어 실내 콘텐츠가 편해요.",
+      };
   }
 };
+
+const getMetric = (metrics: Metric[], label: string) =>
+  metrics.find((metric) => metric.label === label);
+
+function getTimeSignalCopy(items: TodayPayload["dayFlow"]) {
+  const cautionItem = items.find((item) => ["good", "uhm"].includes(item.grade));
+  const bestItem = items.find((item) => ["gorgeous", "great"].includes(item.grade));
+
+  if (cautionItem) {
+    return {
+      title: `${cautionItem.label}엔 한 번 더 확인해요`,
+    };
+  }
+
+  if (bestItem) {
+    return {
+      title: `${bestItem.label}까지는 편하게 움직여요`,
+    };
+  }
+
+  return {
+    title: "오늘 흐름을 확인해요",
+  };
+}
+
+function HourlyWeatherRows({ rows }: { rows: HourlyWeather[] }) {
+  return (
+    <section className="hourlyWeatherList">
+      {rows.map((item) => (
+        <div className="hourlyWeatherRow" key={item.time}>
+          <div className="hourlyWeatherTime">
+            <SignalDot grade={item.grade} size={8} className="hourlyWeatherDot" />
+            <strong>{item.time}</strong>
+          </div>
+          <div className="hourlyWeatherBody">
+            <div className="hourlyWeatherMain">
+              <span>{item.summary}</span>
+              <SignalBadge grade={item.grade} compact />
+            </div>
+            <div className="hourlyWeatherMeta">
+              <span aria-label={`온도 ${item.temperature}`}>
+                <Thermometer size={13} strokeWidth={2.2} aria-hidden="true" />
+                {item.temperature}
+              </span>
+              <span aria-label={`비 ${item.rainProbability}`}>
+                <CloudRain size={13} strokeWidth={2.2} aria-hidden="true" />
+                {item.rainProbability}
+              </span>
+              <span aria-label={`바람 ${item.wind}`}>
+                <Wind size={13} strokeWidth={2.2} aria-hidden="true" />
+                {item.wind}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
 
 export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
@@ -71,42 +208,17 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLocationError, setIsLocationError] = useState(false);
-  const [sheetType, setSheetType] = useState<
-    "metrics" | "flow" | "activity" | null
-  >(null);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
-    null,
-  );
-  const {
-    activities,
-    dayFlow,
-    ddaySummary,
-    hourlyWeather,
-    metrics,
-    prepHints,
-    reasons,
-    supportMetrics,
-  } = payload;
-  const preferredCategories = readActivityPreferences();
-  const activityPreferenceSet = preferredCategories.length > 0;
-  const preferredCategorySet = new Set(preferredCategories);
-  const visibleActivities = activities.filter((activity) =>
-    preferredCategorySet.has(activity.category),
-  );
-  const todayGrade = payload.grade;
-  const heroVisual = getGradeVisual(todayGrade, "today");
-  const hasPoorDustHour = hourlyWeather.some((item) =>
-    ["나쁨", "매우나쁨"].includes(item.pm25),
-  );
-  const flowPrepHints = hasPoorDustHour
-    ? Array.from(new Set([...prepHints, "마스크"]))
-    : prepHints;
+  const [mode, setMode] = useState<OutingMode>(() => readOutingMode());
+  const [sheetType, setSheetType] = useState<SheetType>(null);
+  const [saveTarget, setSaveTarget] = useState<LocalContent | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [dateContext] = useState<DateContext>(() => getTodayDateContext());
 
   const refreshTodayPayload = () => {
     setIsLoading(true);
     setLoadError(null);
     setIsLocationError(false);
-    loadTodayPayload(preferredCategories, { skipCache: true })
+    loadTodayPayload(undefined, { skipCache: true })
       .then((nextPayload) => {
         setPayload(nextPayload);
       })
@@ -129,28 +241,35 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
     refreshTodayPayload();
   }, []);
 
-  const closeSheet = () => {
-    setSheetType(null);
-    setSelectedActivity(null);
+  const changeMode = (nextMode: OutingMode) => {
+    setMode(nextMode);
+    writeOutingMode(nextMode);
   };
-  const openActivitySheet = (activity: Activity) => {
-    setSelectedActivity(activity);
-    setSheetType("activity");
-  };
-  const sheetTitle =
-    sheetType === "flow"
-      ? "오늘의 시간별 흐름"
-      : sheetType === "activity" && selectedActivity
-        ? selectedActivity.title
-        : "핵심 지표 요약";
+
+  const heroCopy = getHeroCopy(payload.grade);
+  const weatherVisualCategory = getWeatherVisualCategory(payload);
+  const weatherIconSrc = weatherIconByCategory[weatherVisualCategory];
+  const weatherCheckItems = getWeatherCheckItems(payload);
+  const recommendations = useMemo(
+    () => getLocalContentRecommendations(mode).slice(0, 5),
+    [mode],
+  );
+  const flowItems = payload.dayFlow.filter((item) => !["일출", "일몰"].includes(item.label)).slice(0, 4);
+  const timeSignalCopy = getTimeSignalCopy(flowItems);
 
   return (
     <>
       <AppHeader
-        title="TODAY"
-        locationLabel={payload.locationLabel}
-        updatedAtLabel={payload.updatedAtLabel}
+        locationLabel="경기 파주시 금촌동"
+        updatedAtLabel="10:00 기준"
+        menuPlacement="right"
         onMenuClick={onMenuClick}
+        beforeNotification={
+          <SituationDropdown
+            mode={mode}
+            onChange={changeMode}
+          />
+        }
       />
 
       <main className="screenStack">
@@ -181,114 +300,36 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
               />
             ) : null}
 
-            <section
-              className="weatherHeroCard"
-              style={{
-                borderRadius: radius.xxl,
-                background: `linear-gradient(135deg, ${colors.surface} 0%, ${colors.backgroundSoftBlue} 100%)`,
-                boxShadow: shadows.card,
-                overflow: "hidden",
-                position: "relative",
-              }}
-            >
-              <div className="heroCopy">
-                <p
-                  style={{
-                    color: colors.textSecondary,
-                    margin: 0,
-                    ...typography.body2,
-                  }}
-                >
-                  오늘 외출 지수
-                </p>
-                <h1
-                  className="heroGradeTitle"
-                  style={{
-                    color: heroVisual.color,
-                    background: `linear-gradient(to top, ${heroVisual.softColor} 38%, transparent 38%)`,
-                  }}
-                >
-                  {heroVisual.label}
-                </h1>
-                <ul className="reasonList">
-                  {reasons.map((reason) => (
-                    <li key={reason}>{reason}</li>
-                  ))}
-                </ul>
+            <section className="heroSignalCard heroSignalExpanded">
+              <div className="heroSignalCopy">
+                <SignalBadge grade={payload.grade} />
+                <h1>{heroCopy.title}</h1>
+                <p>{heroCopy.description}</p>
               </div>
               <div
-                className="heroImageSlot heroFace"
-                data-grade={todayGrade}
-                aria-hidden="true"
-                style={{
-                  background: `radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.42), transparent 1rem), linear-gradient(135deg, ${heroVisual.softColor}, ${heroVisual.color})`,
-                }}
+                className="heroWeatherIllustration"
+                data-weather-category={weatherVisualCategory}
+                aria-label="현재 날씨 그래픽"
               >
-                <span className="heroEyes">
-                  <span className="heroEye heroEyeLeft" />
-                  <span className="heroEye heroEyeRight" />
-                </span>
-                <span className="heroMouth" />
+                <img src={weatherIconSrc} alt="" aria-hidden="true" />
               </div>
             </section>
 
             <section className="sectionBlock">
               <div className="sectionTitleRow">
-                <h2>오늘 날씨 지표</h2>
-                <button
-                  className="textButton"
-                  type="button"
-                  onClick={() => setSheetType("metrics")}
-                >
-                  자세히 보기
-                </button>
+                <h2>날씨 체크</h2>
               </div>
-              <div className="metricGrid">
-                {metrics.map((metric) => {
-                  const currentTone = metric.current.tone
-                    ? getGradeVisual(metric.current.tone)
-                    : null;
-                  const peakTone = metric.peak.tone
-                    ? getGradeVisual(metric.peak.tone)
-                    : null;
-                  const valuesMatch =
-                    metric.current.value === metric.peak.value;
-                  const statusColor = peakTone?.color ?? currentTone?.color ?? colors.textTertiary;
-
+              <div className="weatherCheckScroller" aria-label="날씨 체크">
+                {weatherCheckItems.map((item) => {
+                  const visual = getGradeVisual(item.grade);
                   return (
-                    <article
-                      className="miniCard metricDualCard"
-                      key={metric.label}
-                    >
-                      <div className="metricDualCardHeader">
-                        <span
-                          className="metricStatusDot"
-                          style={{ background: statusColor }}
-                          aria-hidden="true"
-                        />
-                        <p className="metricDualCardTitle">{metric.label}</p>
-                      </div>
-                      {valuesMatch ? (
-                        <strong
-                          className="metricDualValueCurrent"
-                        >
-                          {metric.current.value}
-                        </strong>
-                      ) : (
-                        <div className="metricDualValues">
-                          <strong className="metricDualValueCurrent">
-                            {metric.current.value}
-                          </strong>
-                          <div className="metricDualPeakBlock">
-                            <span className="metricDualPeakLabel">
-                              오늘 최대
-                            </span>
-                            <span className="metricDualPeakValue">
-                              {metric.peak.value}
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                    <article className="weatherCheckCard" key={item.label}>
+                      <span className="weatherCheckIcon">
+                        <WeatherCheckGraphic iconKey={item.iconKey} label={`${item.label} ${item.status}`} />
+                      </span>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <em style={{ color: visual.color }}>{item.status}</em>
                     </article>
                   );
                 })}
@@ -297,122 +338,58 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
 
             <section className="sectionBlock">
               <div className="sectionTitleRow">
-                <h2>오늘의 시간별 흐름</h2>
-                <button
-                  className="textButton"
-                  type="button"
-                  onClick={() => setSheetType("flow")}
-                >
-                  자세히 보기
+                <h2>오늘 흐름</h2>
+                <button className="textButton" type="button" onClick={() => setSheetType("time")}>
+                  더보기 &gt;
                 </button>
               </div>
-              <div className="dayFlowSummaryCard">
-                <div className="dayFlowSummaryCopy">
-                  <strong>오늘은 오전부터 오후까지 무난해요</strong>
-                  <span>
-                    일출 {dayFlow[0]?.value ?? "-"} · 일몰 {dayFlow[4]?.value ?? "-"}
-                  </span>
+              <article className="timeSignalCard">
+                <div className="timeSignalSummary">
+                  <strong>{timeSignalCopy.title}</strong>
                 </div>
-                <div className="dayFlowSegments">
-                  {dayFlow.slice(1, 4).map((item) => {
-                  const visual = getGradeVisual(item.grade);
-
-                  return (
-                    <article className="dayFlowSegment" key={item.label}>
-                      <span
-                        className="dayFlowSegmentDot"
-                        style={{ background: visual.color }}
-                        aria-hidden="true"
-                      />
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                    </article>
-                  );
-                  })}
+                <div className="timeSignalLine">
+                  {flowItems.slice(0, 3).map((item) => (
+                    <span className="timeSignalPoint" key={item.label}>
+                      <SignalDot grade={item.grade} size={10} />
+                      <strong>{item.label}</strong>
+                      <em>{item.value}</em>
+                    </span>
+                  ))}
                 </div>
-              </div>
+              </article>
             </section>
 
             <section className="sectionBlock">
               <div className="sectionTitleRow">
-                <h2>오늘 어울리는 활동</h2>
-                <Link className="textButton" to="/activity-preferences">
-                  설정 변경
-                </Link>
+                <h2>오늘의 추천</h2>
+                <button className="textButton" type="button" onClick={() => navigate("/discover")}>
+                  더 보기
+                </button>
               </div>
-              {activityPreferenceSet && visibleActivities.length > 0 ? (
-                <div className="activityScroller">
-                  {visibleActivities.map((activity) => (
-                    <button
-                      className="activityCard"
-                      key={activity.title}
-                      type="button"
-                      onClick={() => openActivitySheet(activity)}
-                    >
-                      <img
-                        className="activityImageSlot"
-                        src={activityIconByCategory[activity.category]}
-                        alt=""
-                        aria-hidden="true"
-                      />
-                      <GradeBadge grade={activity.grade} />
-                      <h3>{activity.title}</h3>
-                      <p>{activity.reason}</p>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title={
-                    activityPreferenceSet
-                      ? "선택한 활동 추천을 불러오지 못했어요."
-                      : "선호 활동을 선택해주세요."
-                  }
-                  description={
-                    activityPreferenceSet
-                      ? "다시 불러오기를 눌러 최신 추천을 받아보세요. 계속 비어 있으면 설정을 한 번 더 저장해주세요."
-                      : "자주 하는 활동을 설정하면 오늘 어떤 활동이 좋은지 알려드릴게요."
-                  }
-                  action={
-                    activityPreferenceSet ? (
-                      <PrimaryButton onClick={refreshTodayPayload}>
-                        다시 불러오기
-                      </PrimaryButton>
-                    ) : (
-                      <PrimaryButton
-                        onClick={() => navigate("/activity-preferences")}
-                      >
-                        선호 활동 설정하기
-                      </PrimaryButton>
-                    )
-                  }
-                />
-              )}
+              {savedMessage ? <p className="inlineStatusMessage">{savedMessage}</p> : null}
+              <div className="localContentList">
+                {recommendations.map((content) => (
+                  <LocalContentCard
+                    key={content.id}
+                    content={content}
+                    compact
+                    onClick={() => navigate(`/content/${content.id}`)}
+                    onSave={(nextContent) => setSaveTarget(nextContent)}
+                  />
+                ))}
+              </div>
             </section>
 
-            {ddaySummary ? (
-              <section className="ddayMiniCard">
-                <div>
-                  <p>오늘 / 내일 D-DAY</p>
-                  <strong>{ddaySummary.title}</strong>
-                  <span>
-                    {ddaySummary.dateLabel} · {ddaySummary.location}
-                  </span>
-                </div>
-                <GradeBadge grade={ddaySummary.grade} />
-              </section>
-            ) : null}
-
-            <section className="discoverCtaCard">
+            <section className="discoverCtaCard signalSearchCtaCard">
               <div>
-                <p>이번 주말 뭐 하지?</p>
-                <strong>오늘 날씨에 맞는 장소를 찾아볼까요?</strong>
+                <p>다른 콘텐츠도 볼까요?</p>
+                <strong>날짜와 지역에 맞는 신호를 찾아보세요.</strong>
               </div>
               <PrimaryButton
                 fullWidth={false}
                 onClick={() => navigate("/discover")}
               >
-                보러 가기
+                지역·콘텐츠 검색
               </PrimaryButton>
             </section>
           </>
@@ -420,182 +397,29 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
       </main>
 
       <BottomSheet
-        open={sheetType !== null}
-        title={sheetTitle}
-        onClose={closeSheet}
+        open={sheetType === "time"}
+        title="시간별 날씨"
+        onClose={() => setSheetType(null)}
       >
         <div className="sheetStack">
-          {sheetType === "flow" ? (
-            <>
-              <section className="hourlyFlowSummary">
-                <h3>오전부터 오후까지 무난하고, 저녁엔 조금 선선해져요.</h3>
-                <div className="hourlyFlowPills">
-                  <span>일출 {dayFlow[0]?.value ?? "-"}</span>
-                  <span>일몰 {dayFlow[4]?.value ?? "-"}</span>
-                </div>
-              </section>
-              <section className="hourlyWeatherList">
-                {hourlyWeather.map((item) => {
-                  const visual = getGradeVisual(item.grade);
-
-                  return (
-                    <div className="hourlyWeatherRow" key={item.time}>
-                      <div className="hourlyWeatherTime">
-                        <span
-                          className="hourlyWeatherDot"
-                          style={{ background: visual.color }}
-                          aria-hidden="true"
-                        />
-                        <strong>{item.time}</strong>
-                      </div>
-                      <div className="hourlyWeatherBody">
-                        <div className="hourlyWeatherMain">
-                          <span>{item.summary}</span>
-                          <GradeBadge grade={item.grade} />
-                        </div>
-                        <div className="hourlyWeatherMeta">
-                          <span aria-label={`온도 ${item.temperature}`}>
-                            <Thermometer size={13} strokeWidth={2.2} aria-hidden="true" />
-                            {item.temperature}
-                          </span>
-                          <span aria-label={`비 ${item.rainProbability}`}>
-                            <CloudRain size={13} strokeWidth={2.2} aria-hidden="true" />
-                            {item.rainProbability}
-                          </span>
-                          <span aria-label={`바람 ${item.wind}`}>
-                            <Wind size={13} strokeWidth={2.2} aria-hidden="true" />
-                            {item.wind}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </section>
-              <section className="compactInfoSection prepInfoSection hourlyPrepSection">
-                <h3>준비물</h3>
-                <div className="prepHintList">
-                  {flowPrepHints.map((hint) => (
-                    <span key={hint}>{hint}</span>
-                  ))}
-                </div>
-              </section>
-            </>
-          ) : sheetType === "activity" && selectedActivity ? (
-            <>
-              <div className="activityDetailHero">
-                <GradeBadge grade={selectedActivity.grade} />
-                <p>
-                  오늘은 {getGradeVisual(selectedActivity.grade).label}이에요.
-                </p>
-              </div>
-              <section className="activityDetailSection">
-                <h3>좋은 이유</h3>
-                <ul>
-                  {selectedActivity.goodReasons.map((reason) => (
-                    <li key={reason}>{reason}</li>
-                  ))}
-                </ul>
-              </section>
-              <section className="activityDetailSection">
-                <h3>주의할 점</h3>
-                <ul>
-                  {selectedActivity.cautions.map((caution) => (
-                    <li key={caution}>{caution}</li>
-                  ))}
-                </ul>
-              </section>
-              <section className="activityDetailSection">
-                <h3>시간대별 추천</h3>
-                <div className="activityTimeList">
-                  {selectedActivity.timeRecommendations.map((item) => (
-                    <div className="activityTimeRow" key={item.label}>
-                      <span>
-                        {item.label} {item.time}
-                      </span>
-                      <GradeBadge grade={item.grade} />
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <PrimaryButton onClick={() => navigate("/discover")}>
-                근처 {selectedActivity.title} 장소 보기
-              </PrimaryButton>
-            </>
-          ) : (
-            <>
-              <section className="metricCheckSection">
-                <div className="metricCheckHeader">
-                  <span>오늘 체크 포인트</span>
-                  <GradeBadge grade={todayGrade} />
-                </div>
-                <p className="metricCheckLead">
-                  외출 스코어는 {getGradeVisual(todayGrade).label}이에요.
-                </p>
-                <ul className="metricCheckList">
-                  {metrics.map((metric) => (
-                    <li key={metric.label}>
-                      {getMetricCheckCopy(metric.label, metric.current.value, metric.peak.value)}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section className="compactInfoSection prepInfoSection">
-                <h3>준비물</h3>
-                <div className="prepHintList">
-                  {prepHints.map((hint) => (
-                    <span key={hint}>{hint}</span>
-                  ))}
-                </div>
-              </section>
-
-              <section className="metricCompactGrid" aria-label="오늘 날씨 지표">
-                {metrics.map((metric) => (
-                  <article className="metricCompactCard" key={metric.label}>
-                    <div className="metricCompactHeader">
-                      <span className="metricCompactIcon" aria-hidden="true">
-                        {(() => {
-                          const Icon = metricIconByLabel[metric.label] ?? CloudFog;
-                          return <Icon size={18} strokeWidth={2.2} />;
-                        })()}
-                      </span>
-                      <strong>{metric.label}</strong>
-                    </div>
-
-                    <div className="metricCompactValues">
-                      <div>
-                        <span>지금</span>
-                        <strong style={{ color: metric.current.tone ? getGradeVisual(metric.current.tone).color : colors.textPrimary }}>
-                          {metric.current.value}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>오늘 최대</span>
-                        <strong style={{ color: metric.peak.tone ? getGradeVisual(metric.peak.tone).color : colors.textPrimary }}>
-                          {metric.peak.value}
-                        </strong>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </section>
-
-              <section className="compactInfoSection">
-                <h3>보조 지표</h3>
-                <div className="supportMetricGrid">
-                  {supportMetrics.map((metric) => (
-                    <div key={metric.label}>
-                      <span>{metric.label}</span>
-                      <strong>{metric.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
+          <section className="hourlyFlowSummary">
+            <h3>시간대별 신호를 확인해요.</h3>
+            <div className="hourlyFlowPills">
+              <span>일출 {payload.dayFlow[0]?.value ?? "-"}</span>
+              <span>일몰 {payload.dayFlow[4]?.value ?? "-"}</span>
+            </div>
+          </section>
+          <HourlyWeatherRows rows={payload.hourlyWeather} />
         </div>
       </BottomSheet>
+
+      <SaveReminderSheet
+        open={Boolean(saveTarget)}
+        content={saveTarget}
+        dateContext={dateContext}
+        onClose={() => setSaveTarget(null)}
+        onSaved={() => setSavedMessage("저장했어요. 저장 탭에서 다시 볼 수 있어요.")}
+      />
     </>
   );
 }

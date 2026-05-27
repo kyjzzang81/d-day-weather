@@ -40,7 +40,7 @@ export function BottomSheet({ open, title, children, onClose }: BottomSheetProps
     position: "fixed",
     inset: 0,
     zIndex: 40,
-    background: "rgba(31, 41, 51, 0.28)",
+    background: "rgba(20, 26, 36, 0.42)",
     display: "flex",
     alignItems: "flex-end",
     justifyContent: "center"
@@ -49,11 +49,11 @@ export function BottomSheet({ open, title, children, onClose }: BottomSheetProps
   const sheetStyle: CSSProperties = {
     width: "100%",
     maxWidth: layout.mobileMaxWidth,
-    borderTopLeftRadius: radius.xxl,
-    borderTopRightRadius: radius.xxl,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
     background: colors.surface,
     boxShadow: shadows.bottomSheet,
-    padding: `${spacing.md}px ${spacing.xl}px ${spacing.xxl}px`
+    padding: `${spacing.md}px ${spacing.xl}px ${spacing.xxxl}px`
   };
 
   return (
@@ -61,7 +61,7 @@ export function BottomSheet({ open, title, children, onClose }: BottomSheetProps
       <section className="sheetPanel" data-state={closing ? "closing" : "open"} style={sheetStyle}>
         <div className="sheetHandle" />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: spacing.md }}>
-          <h2 style={{ margin: 0, color: colors.textPrimary, ...typography.title3 }}>{title}</h2>
+          <h2 style={{ margin: 0, color: colors.textStrong, ...typography.title2 }}>{title}</h2>
           <button className="iconButton" type="button" onClick={onClose} aria-label="닫기">
             ×
           </button>

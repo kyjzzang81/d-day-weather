@@ -13,12 +13,12 @@ export function SearchBar({ value, onChange, placeholder = "검색어를 입력�
     display: "flex",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 50,
+    minHeight: 54,
     borderRadius: radius.lg,
     background: colors.surface,
-    border: `1px solid ${colors.border}`,
+    border: 0,
     boxShadow: shadows.card,
-    padding: `0 ${spacing.md}px`
+    padding: `0 ${spacing.lg}px`
   };
 
   return (
@@ -37,7 +37,7 @@ export function SearchBar({ value, onChange, placeholder = "검색어를 입력�
           outline: 0,
           color: colors.textPrimary,
           background: "transparent",
-          ...typography.body2
+          ...typography.body1
         }}
       />
     </label>

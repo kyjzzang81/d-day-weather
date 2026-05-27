@@ -4,9 +4,9 @@ import { NavLink } from "react-router-dom";
 import { colors, layout, radius, spacing, typography } from "../../design/tokens";
 
 const tabs = [
-  { to: "/today", label: "TODAY", Icon: House },
-  { to: "/discover", label: "DISCOVER", Icon: Compass },
-  { to: "/dday", label: "D-DAY", Icon: CalendarDays }
+  { to: "/today", label: "홈", Icon: House },
+  { to: "/discover", label: "발견", Icon: Compass },
+  { to: "/dday", label: "저장", Icon: CalendarDays }
 ] as const;
 
 export function BottomTabBar() {
@@ -19,9 +19,12 @@ export function BottomTabBar() {
     gridTemplateColumns: "repeat(3, 1fr)",
     alignItems: "center",
     gap: spacing.sm,
-    borderTop: `1px solid ${colors.border}`,
-    background: "rgba(255, 255, 255, 0.9)",
+    borderTop: 0,
+    borderRadius: `${radius.xxl}px ${radius.xxl}px 0 0`,
+    background: "rgba(255, 255, 255, 0.96)",
     backdropFilter: "blur(18px)",
+    boxShadow: "0 -10px 28px rgba(20, 26, 36, 0.08)",
+    margin: `0 -${spacing.lg2 - 2}px`,
     padding: `${spacing.sm}px ${spacing.lg}px ${spacing.md}px`
   };
 
@@ -37,8 +40,8 @@ export function BottomTabBar() {
               <span
                 className="bottomTabIcon"
                 style={{
-                  background: isActive ? colors.accentSoft : colors.surface,
-                  color: isActive ? colors.accent : colors.textTertiary,
+                  background: "transparent",
+                  color: isActive ? colors.ink : colors.textDisabled,
                   borderRadius: radius.pill
                 }}
               >
@@ -46,9 +49,9 @@ export function BottomTabBar() {
               </span>
               <span
                 style={{
-                  color: isActive ? colors.accent : colors.textSecondary,
+                  color: isActive ? colors.ink : colors.textTertiary,
                   ...typography.caption,
-                  fontWeight: isActive ? 700 : 500
+                  fontWeight: isActive ? 800 : 600
                 }}
               >
                 {tab.label}

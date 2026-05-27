@@ -2,10 +2,12 @@ import { colors } from "./tokens";
 
 export type GradeCode = "gorgeous" | "great" | "good" | "uhm";
 export type GradeContext = "today" | "discover" | "dday";
+export type SignalLabel = "GREAT" | "GOOD" | "CAUTION" | "BAD";
 
 export interface GradeVisual {
   code: GradeCode;
   label: string;
+  signalLabel: SignalLabel;
   color: string;
   softColor: string;
   dotCount: 0 | 1 | 2 | 3;
@@ -58,31 +60,35 @@ export const getGradeVisual = (
 ): GradeVisual => {
   const code = normalizeGrade(grade);
   const labels: Record<GradeCode, string> = {
-    gorgeous: context === "discover" ? "gorgeous" : "강력추천",
-    great: context === "discover" ? "great" : "추천",
-    good: context === "discover" ? "good" : "조금 추천",
-    uhm: context === "discover" ? "uhm.." : "비추천"
+    gorgeous: context === "discover" ? "GREAT" : "GREAT",
+    great: context === "discover" ? "GOOD" : "GOOD",
+    good: context === "discover" ? "CAUTION" : "CAUTION",
+    uhm: context === "discover" ? "BAD" : "BAD"
   };
 
   const visualMap: Record<GradeCode, Omit<GradeVisual, "code" | "label" | "accessibilityLabel">> = {
     gorgeous: {
+      signalLabel: "GREAT",
       color: colors.accent,
       softColor: colors.accentSoft,
       dotCount: 3
     },
     great: {
-      color: colors.accentSecondary,
-      softColor: colors.accentSecondarySoft,
+      signalLabel: "GOOD",
+      color: colors.accent,
+      softColor: colors.accentSoft,
       dotCount: 2
     },
     good: {
-      color: colors.success,
-      softColor: colors.successSoft,
+      signalLabel: "CAUTION",
+      color: colors.ink,
+      softColor: colors.neutralSoft,
       dotCount: 1
     },
     uhm: {
-      color: colors.danger,
-      softColor: colors.dangerSoft,
+      signalLabel: "BAD",
+      color: colors.caution,
+      softColor: colors.cautionSoft,
       dotCount: 0
     }
   };

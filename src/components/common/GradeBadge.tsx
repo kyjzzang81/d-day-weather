@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { getGradeVisual, type GradeCode, type GradeContext } from "../../design/grade";
 import { radius, spacing, typography } from "../../design/tokens";
+import { SignalDot } from "./SignalDot";
 
 interface GradeBadgeProps {
   grade: GradeCode | "uhm.." | "강력추천" | "추천" | "보통" | "비추천";
@@ -32,7 +33,8 @@ export function GradeBadge({ grade, context = "today" }: GradeBadgeProps) {
 
   return (
     <span style={badgeStyle}>
-      {visual.label}
+      <SignalDot grade={visual.code} size={7} />
+      {visual.signalLabel}
     </span>
   );
 }

@@ -1,6 +1,7 @@
 import type { GradeCode } from "../../design/grade";
 import { readActivityPreferences } from "../activityPreferences/activityPreferenceStore";
 import { LocationUnavailableError } from "../../lib/locationErrors";
+import type { LocalContent } from "../localContent/localContentTypes";
 
 export type ActivityCategoryCode =
   | "beach"
@@ -88,6 +89,7 @@ export interface TodayPayload {
   activityImpacts: ActivityImpact[];
   dayFlow: DayFlowItem[];
   activities: Activity[];
+  recommendedContents?: LocalContent[];
   ddaySummary: DdaySummary | null;
   hourlyWeather: HourlyWeather[];
 }
@@ -112,7 +114,7 @@ export const mockTodayPayload: TodayPayload = {
   locationLabel: "성수동",
   updatedAtLabel: "6월 2일 (월) 09:30 기준",
   grade: "gorgeous",
-  reasons: ["가벼운 외출과 산책에 좋아요", "비 가능성이 낮고 바람도 안정적이에요"],
+  reasons: ["가볍게 움직이기 좋아요", "비 가능성이 낮고 바람도 안정적이에요"],
   metrics: [
     {
       label: "강수확률",
@@ -207,11 +209,11 @@ export const mockTodayPayload: TodayPayload = {
   hourlyWeather: [
     { time: "06:00", grade: "great", summary: "상쾌한 아침", temperature: "18°", rainProbability: "10%", wind: "1m/s", pm25: "좋음" },
     { time: "07:00", grade: "gorgeous", summary: "산책 좋아요", temperature: "19°", rainProbability: "10%", wind: "1m/s", pm25: "좋음" },
-    { time: "08:00", grade: "gorgeous", summary: "외출 추천", temperature: "20°", rainProbability: "10%", wind: "2m/s", pm25: "좋음" },
+    { time: "08:00", grade: "gorgeous", summary: "신호 좋아요", temperature: "20°", rainProbability: "10%", wind: "2m/s", pm25: "좋음" },
     { time: "09:00", grade: "gorgeous", summary: "햇빛 편안", temperature: "21°", rainProbability: "15%", wind: "2m/s", pm25: "좋음" },
     { time: "10:00", grade: "gorgeous", summary: "활동하기 좋아요", temperature: "22°", rainProbability: "15%", wind: "2m/s", pm25: "좋음" },
     { time: "11:00", grade: "great", summary: "가벼운 바람", temperature: "23°", rainProbability: "20%", wind: "2m/s", pm25: "좋음" },
-    { time: "12:00", grade: "great", summary: "점심 외출 무난", temperature: "24°", rainProbability: "20%", wind: "3m/s", pm25: "좋음" },
+    { time: "12:00", grade: "great", summary: "점심 이동 무난", temperature: "24°", rainProbability: "20%", wind: "3m/s", pm25: "좋음" },
     { time: "13:00", grade: "great", summary: "구름 조금", temperature: "24°", rainProbability: "20%", wind: "3m/s", pm25: "좋음" },
     { time: "14:00", grade: "great", summary: "야외 활동 무난", temperature: "25°", rainProbability: "20%", wind: "3m/s", pm25: "보통" },
     { time: "15:00", grade: "good", summary: "바람 조금 증가", temperature: "25°", rainProbability: "25%", wind: "4m/s", pm25: "보통" },

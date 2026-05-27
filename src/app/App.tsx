@@ -4,7 +4,8 @@ import { BottomTabBar } from "../components/layout/BottomTabBar";
 import { SidebarDrawer } from "../components/layout/SidebarDrawer";
 import { colors, radius, shadows, spacing, typography } from "../design/tokens";
 import { ActivityPreferencesScreen } from "../features/activityPreferences/ActivityPreferencesScreen";
-import { DdayScreen } from "../features/dday/DdayScreen";
+import { ContentDetailScreen } from "../features/contentDetail/ContentDetailScreen";
+import { SavedScreen } from "../features/savedContents/SavedScreen";
 import { DiscoverScreen } from "../features/discover/DiscoverScreen";
 import { TodayScreen } from "../features/today/TodayScreen";
 
@@ -39,7 +40,8 @@ export function App() {
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayScreen onMenuClick={openDrawer} />} />
           <Route path="/discover" element={<DiscoverScreen onMenuClick={openDrawer} />} />
-          <Route path="/dday" element={<DdayScreen onMenuClick={openDrawer} />} />
+          <Route path="/dday" element={<SavedScreen onMenuClick={openDrawer} />} />
+          <Route path="/content/:contentId" element={<ContentDetailScreen onMenuClick={openDrawer} />} />
           <Route
             path="/location/select"
             element={<PlaceholderScreen title="위치 선택" description="지역 선택 화면은 다음 단계에서 검색 결과와 연결합니다." />}

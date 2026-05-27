@@ -1,58 +1,77 @@
 export const colors = {
-  background: "#F7F8FF",
-  backgroundSoftBlue: "#EEF0FF",
+  ink: "#141A24",
+  black: "#000000",
+  background: "#F3F4F6",
+  backgroundSoftBlue: "#EBF5FF",
   surface: "#FFFFFF",
-  surfaceMuted: "#F4F5FF",
+  surfaceWarm: "#FFFFFF",
+  surfaceMuted: "#F7F8FA",
 
-  textPrimary: "#1F2933",
-  textSecondary: "#64707D",
-  textTertiary: "#9AA5B1",
+  textStrong: "#141A24",
+  textPrimary: "#191F28",
+  textSecondary: "#6B7078",
+  textTertiary: "#A7ADB7",
+  textDisabled: "#D4D8E1",
   textInverse: "#FFFFFF",
 
-  border: "#E4E7F5",
-  divider: "#ECEEFA",
+  line: "#EEF0F3",
+  border: "#EEF0F3",
+  borderWeak: "#F7F8FA",
+  divider: "#EEF0F3",
+  dividerWeak: "#F7F8FA",
 
-  accent: "#5260FE",
-  accentSoft: "#E7E9FF",
-  accentSecondary: "#C871FD",
-  accentSecondarySoft: "#F5E7FF",
+  accent: "#0078FF",
+  accentStrong: "#0069FF",
+  accentHeavy: "#0052E0",
+  accentSoft: "#EBF5FF",
+  signalOrange: "#FF8800",
+  signalOrangeSoft: "#FFF8E6",
+  accentSecondary: "#FF8800",
+  accentSecondarySoft: "#FFF8E6",
 
-  success: "#14EB00",
-  successSoft: "#E8FFE5",
+  signalGreen: "#04CA81",
+  signalGreenStrong: "#00BB83",
+  signalGreenSoft: "#E6FEF0",
+  success: "#04CA81",
+  successStrong: "#00BB83",
+  successSoft: "#E6FEF0",
 
-  recommendation: "#5260FE",
-  recommendationSoft: "#E7E9FF",
+  recommendation: "#04CA81",
+  recommendationSoft: "#E6FEF0",
 
-  caution: "#FF8F2E",
-  cautionSoft: "#FFF0E4",
+  caution: "#FF8800",
+  cautionStrong: "#FA7900",
+  cautionSoft: "#FFF8E6",
 
-  neutral: "#9AA5B1",
-  neutralSoft: "#F4F6F8",
+  neutral: "#697383",
+  neutralSoft: "#F7F8FA",
 
-  danger: "#FF5B5B",
-  dangerSoft: "#FFEAEA"
+  danger: "#FF3A5B",
+  dangerStrong: "#F51441",
+  dangerSoft: "#FFF0F3"
 } as const;
 
 export const typography = {
   display: {
-    fontSize: 30,
-    lineHeight: "38px",
-    fontWeight: 700
+    fontSize: 34,
+    lineHeight: "42px",
+    fontWeight: 800,
+    letterSpacing: "-0.2px"
   },
   title1: {
-    fontSize: 24,
-    lineHeight: "32px",
-    fontWeight: 700
+    fontSize: 28,
+    lineHeight: "38px",
+    fontWeight: 800
   },
   title2: {
-    fontSize: 20,
-    lineHeight: "28px",
-    fontWeight: 700
+    fontSize: 22,
+    lineHeight: "32px",
+    fontWeight: 800
   },
   title3: {
-    fontSize: 17,
-    lineHeight: "24px",
-    fontWeight: 600
+    fontSize: 18,
+    lineHeight: "26px",
+    fontWeight: 700
   },
   body1: {
     fontSize: 16,
@@ -67,49 +86,57 @@ export const typography = {
   caption: {
     fontSize: 12,
     lineHeight: "18px",
-    fontWeight: 400
+    fontWeight: 500
   },
   button: {
-    fontSize: 16,
-    lineHeight: "22px",
-    fontWeight: 600
+    fontSize: 17,
+    lineHeight: "24px",
+    fontWeight: 800
   }
 } as const;
 
 export const spacing = {
+  none: 0,
+  xxxs: 1,
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
+  lg2: 20,
   xl: 24,
+  xl2: 28,
   xxl: 32,
+  xxl2: 36,
   xxxl: 40
 } as const;
 
 export const radius = {
-  sm: 8,
+  xs: 8,
+  sm: 10,
   md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
+  lg: 18,
+  xl: 24,
+  xxl: 28,
+  sheet: 32,
   pill: 999
 } as const;
 
 export const shadows = {
-  card: "0 8px 24px rgba(31, 41, 51, 0.07)",
-  floating: "0 16px 40px rgba(31, 41, 51, 0.13)",
-  bottomSheet: "0 -12px 40px rgba(31, 41, 51, 0.16)"
+  card: "0 1px 2px rgba(20, 26, 36, 0.03)",
+  floating: "0 10px 28px rgba(20, 26, 36, 0.08)",
+  bottomSheet: "0 -14px 36px rgba(20, 26, 36, 0.18)"
 } as const;
 
 export const layout = {
   mobileMaxWidth: 430,
-  contentPadding: 20,
+  contentPadding: 18,
   cardPadding: 18,
   bottomTabHeight: 82
 } as const;
 
 export const fontFamily =
-  '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Noto Sans KR", system-ui, sans-serif';
+  'Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif';
 
 export const tokens = {
   colors,

@@ -11,10 +11,10 @@ interface SidebarDrawerProps {
 
 const menuItems = [
   { label: "마이페이지", to: "/mypage" },
-  { label: "저장된 D-DAY", to: "/dday" },
+  { label: "저장", to: "/dday" },
   { label: "선호 활동 변경", to: "/activity-preferences" },
   { label: "위치 설정", to: "/location/select" },
-  { label: "설정", to: "/settings" }
+  { label: "알림·설정", to: "/settings" }
 ] as const;
 
 export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
@@ -26,7 +26,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
     position: "fixed",
     inset: 0,
     zIndex: 35,
-    background: "rgba(31, 41, 51, 0.24)",
+    background: "rgba(20, 26, 36, 0.34)",
     display: "flex",
     justifyContent: "center"
   };
@@ -40,8 +40,8 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
         style={{
           background: colors.surface,
           boxShadow: shadows.floating,
-          borderTopRightRadius: radius.xxl,
-          borderBottomRightRadius: radius.xxl
+          borderTopLeftRadius: radius.xxl,
+          borderBottomLeftRadius: radius.xxl
         }}
         onClick={(event) => event.stopPropagation()}
       >
@@ -57,12 +57,12 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
               </button>
             </div>
             <p style={{ margin: `${spacing.xs}px 0 ${spacing.xl}px`, color: colors.textSecondary, ...typography.body2 }}>
-              오늘 날씨, 나의 일정 가이드
+              날씨와 날짜에 맞춘 로컬 콘텐츠 신호
             </p>
             <div
               style={{
                 borderRadius: radius.xl,
-                background: colors.backgroundSoftBlue,
+                background: colors.surfaceWarm,
                 padding: spacing.lg,
                 marginBottom: spacing.xl
               }}
