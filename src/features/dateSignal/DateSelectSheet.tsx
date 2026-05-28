@@ -12,6 +12,7 @@ interface DateSelectSheetProps {
 
 export function DateSelectSheet({ open, selected, onSelect, onClose }: DateSelectSheetProps) {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const year = today.getFullYear();
   const month = today.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -60,6 +61,7 @@ export function DateSelectSheet({ open, selected, onSelect, onClose }: DateSelec
               const context = getDateContext(date);
               const isSelected = context.targetDate === selected.targetDate;
               const isToday = context.targetDate === getTodayDateContext().targetDate;
+              const isPast = date.getTime() < today.getTime();
 
               return (
                 <button
@@ -68,7 +70,11 @@ export function DateSelectSheet({ open, selected, onSelect, onClose }: DateSelec
                   type="button"
                   data-selected={isSelected}
                   data-today={isToday}
-                  onClick={() => select(context)}
+                  data-past={isPast}
+                  disabled={isPast}
+                  onClick={() => {
+                    if (!isPast) select(context);
+                  }}
                 >
                   <strong>{date.getDate()}</strong>
                   {isToday ? <span>오늘</span> : null}

@@ -110,6 +110,40 @@ Discover 결과 카드
 다녀왔어요
 ```
 
+## 4-1. SaveReminderSheet
+
+북마크 또는 날짜 저장 CTA 클릭 시 저장/알림 설정 Bottom Sheet를 연다.
+
+로그인 사용자:
+
+```text
+title: 언제 알림 받을까요?
+
+content summary card
+- thumbnail
+- title
+- region / selected date
+- signal badge
+
+reminder option cards
+- 하루 전 오전 9시
+- 당일 오전 8시
+- 날씨가 바뀌면
+- 알림 없이 저장
+
+CTA: 저장하기
+```
+
+비로그인 사용자:
+
+```text
+title: 로그인이 필요해요!
+message: 콘텐츠를 저장하려면 로그인이 필요해요.
+CTA: 로그인하기
+```
+
+MVP에서는 실제 push notification을 만들지 않고, 선택한 reminder 설정만 저장한다.
+
 ---
 
 # 5. user_saved_contents 스키마
@@ -152,9 +186,25 @@ create table if not exists user_saved_contents (
 
 # 6. 저장 정책
 
+## MVP 저장소
+
+현재 프론트 MVP는 Supabase 테이블 대신 `localStorage`를 사용한다.
+
+```text
+key: ggg.savedContents.v1
+```
+
+Supabase `user_saved_contents`는 운영 저장소 전환 시 적용할 권장 모델이다.
+
 ## 비로그인
 
-MVP에서는 로그인 후 저장을 기본으로 한다. 비로그인 사용자가 저장을 누르면 로그인 유도 후 원래 콘텐츠로 돌아온다.
+MVP에서는 로그인 후 저장을 기본으로 한다. 비로그인 사용자가 저장을 누르면 Login Required Bottom Sheet를 띄운다.
+
+현재 구현 로그인 방식:
+
+```text
+Google 우선
+```
 
 ## 중복 저장
 

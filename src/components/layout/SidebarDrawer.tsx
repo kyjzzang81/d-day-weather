@@ -1,8 +1,14 @@
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { ChevronRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoUrl from "../../../assets/logo.png";
 import { colors, radius, shadows, spacing, typography } from "../../design/tokens";
+import {
+  AUTH_STATE_CHANGED_EVENT,
+  readAuthSession,
+  signInWithGoogle,
+  signOut,
+} from "../../features/auth/authState";
 
 interface SidebarDrawerProps {
   open: boolean;
@@ -11,13 +17,24 @@ interface SidebarDrawerProps {
 
 const menuItems = [
   { label: "마이페이지", to: "/mypage" },
-  { label: "저장", to: "/dday" },
-  { label: "선호 활동 변경", to: "/activity-preferences" },
   { label: "위치 설정", to: "/location/select" },
   { label: "알림·설정", to: "/settings" }
 ] as const;
 
 export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
+  const [session, setSession] = useState(() => readAuthSession());
+
+  useEffect(() => {
+    const refresh = () => setSession(readAuthSession());
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    refresh();
+    return () => {
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
   if (!open) {
     return null;
   }
@@ -60,6 +77,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
               날씨와 날짜에 맞춘 로컬 콘텐츠 신호
             </p>
             <div
+              className="sidebarAccountCard"
               style={{
                 borderRadius: radius.xl,
                 background: colors.surfaceWarm,
@@ -67,10 +85,29 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
                 marginBottom: spacing.xl
               }}
             >
-              <p style={{ margin: 0, color: colors.textPrimary, ...typography.title3 }}>비회원 모드</p>
-              <p style={{ margin: `${spacing.xs}px 0 0`, color: colors.textSecondary, ...typography.caption }}>
-                로그인 기능은 이후 단계에서 연결합니다.
+              <p style={{ margin: 0, color: colors.textPrimary, ...typography.title3 }}>
+                {session ? session.name ?? "로그인됨" : "비회원 모드"}
               </p>
+              <p style={{ margin: `${spacing.xs}px 0 ${spacing.md}px`, color: colors.textSecondary, ...typography.caption }}>
+                {session ? session.email ?? "Google 계정으로 로그인했어요." : "저장과 알림은 로그인 후 사용할 수 있어요."}
+              </p>
+              {session ? (
+                <button
+                  className="sidebarAuthButton"
+                  type="button"
+                  onClick={signOut}
+                >
+                  로그아웃
+                </button>
+              ) : (
+                <button
+                  className="sidebarAuthButton"
+                  type="button"
+                  onClick={signInWithGoogle}
+                >
+                  Google로 로그인
+                </button>
+              )}
             </div>
             <nav style={{ display: "grid", gap: spacing.sm }}>
               {menuItems.map((item) => (

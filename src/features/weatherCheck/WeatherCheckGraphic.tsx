@@ -7,10 +7,16 @@ import weatherCheckFeelsLikeComfort from "../../../assets/weather_check_icons/op
 import weatherCheckFeelsLikeCool from "../../../assets/weather_check_icons/optimized/weather-check-feels-like-cool.png";
 import weatherCheckFeelsLikeHot from "../../../assets/weather_check_icons/optimized/weather-check-feels-like-hot.png";
 import weatherCheckFeelsLikeWarm from "../../../assets/weather_check_icons/optimized/weather-check-feels-like-warm.png";
+import weatherCheckHumidityComfort from "../../../assets/weather_check_icons/optimized/weather-check-humidity-comfort.png";
+import weatherCheckHumidityDry from "../../../assets/weather_check_icons/optimized/weather-check-humidity-dry.png";
+import weatherCheckHumidityHumid from "../../../assets/weather_check_icons/optimized/weather-check-humidity-humid.png";
 import weatherCheckRainBad from "../../../assets/weather_check_icons/optimized/weather-check-rain-bad.png";
 import weatherCheckRainCaution from "../../../assets/weather_check_icons/optimized/weather-check-rain-caution.png";
 import weatherCheckRainLow from "../../../assets/weather_check_icons/optimized/weather-check-rain-low.png";
 import weatherCheckRainNormal from "../../../assets/weather_check_icons/optimized/weather-check-rain-normal.png";
+import weatherCheckUvCaution from "../../../assets/weather_check_icons/optimized/weather-check-uv-caution.png";
+import weatherCheckUvLow from "../../../assets/weather_check_icons/optimized/weather-check-uv-low.png";
+import weatherCheckUvNormal from "../../../assets/weather_check_icons/optimized/weather-check-uv-normal.png";
 import weatherCheckWindBad from "../../../assets/weather_check_icons/optimized/weather-check-wind-bad.png";
 import weatherCheckWindCaution from "../../../assets/weather_check_icons/optimized/weather-check-wind-caution.png";
 import weatherCheckWindLow from "../../../assets/weather_check_icons/optimized/weather-check-wind-low.png";
@@ -35,6 +41,12 @@ const weatherCheckGraphicByKey: Record<WeatherCheckIconKey, string> = {
   "feels-like-comfort": weatherCheckFeelsLikeComfort,
   "feels-like-warm": weatherCheckFeelsLikeWarm,
   "feels-like-hot": weatherCheckFeelsLikeHot,
+  "uv-low": weatherCheckUvLow,
+  "uv-normal": weatherCheckUvNormal,
+  "uv-caution": weatherCheckUvCaution,
+  "humidity-dry": weatherCheckHumidityDry,
+  "humidity-comfort": weatherCheckHumidityComfort,
+  "humidity-humid": weatherCheckHumidityHumid,
 };
 
 export function WeatherCheckGraphic({

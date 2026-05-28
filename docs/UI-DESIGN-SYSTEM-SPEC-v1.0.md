@@ -316,7 +316,7 @@ Signal dot 사용 위치:
 
 ```text
 Hero의 GOOD / CAUTION / BAD 앞
-시간별 변화 dot timeline
+오늘 흐름 dot timeline
 콘텐츠 카드의 grade
 저장된 콘텐츠 카드의 상태
 bottom tab active indicator
@@ -336,7 +336,7 @@ Neutral: gray
 
 ## 6-3. Signal Line
 
-시간별 변화에서 사용한다.
+오늘 흐름에서 사용한다.
 
 ```text
 09   12   15   18
@@ -369,12 +369,11 @@ chip gap: 8px
 
 ```text
 1. Header
-2. Situation selector
-3. Hero full card
-4. Weather check horizontal cards
-5. Time signal / 시간별 변화
-6. Today recommendations
-7. Search CTA
+2. Hero full card
+3. Weather check horizontal cards
+4. Time signal / 오늘 흐름
+5. Today recommendations
+6. Small more button
 ```
 
 ## 7-3. Scroll Behavior
@@ -398,12 +397,20 @@ chip gap: 8px
 구성:
 
 ```text
-situation selector: 일상 ▼
-label: 오늘의 신호
-weather icon or illustration
 signal: ● GOOD
-title: 오늘은 무난해요
-description: 비와 바람 부담이 크지 않아요.
+title: 상황별 판단 문구
+description: 상황별 짧은 이유
+weather graphic
+```
+
+상황 선택은 Hero 내부가 아니라 Header action 영역에 배치한다. Hero 문구는 상황 조건에 따라 달라진다.
+
+```text
+일상: 오늘은 무난해요
+액티비티: 움직이기 좋은 흐름이에요
+휴식: 천천히 쉬기 괜찮아요
+아이와: 아이와 움직이기 괜찮아요
+연인·친구: 함께 보기 좋은 날이에요
 ```
 
 금지:
@@ -425,9 +432,19 @@ Hero 결론의 근거를 보여준다.
 ```text
 section title: 날씨 체크
 horizontal card row
-비 / 바람 / 먼지 / 체감
+상황별 핵심 지표 4개
 value + statusLabel
 ```
+
+상황별 지표:
+
+| 상황 | 노출 지표 |
+|---|---|
+| 일상 | 비 / 바람 / 먼지 / 체감 |
+| 액티비티 | 비 / 바람 / 자외선 / 체감 |
+| 휴식 | 먼지 / 습도 / 체감 / 비 |
+| 아이와 | 비 / 먼지 / 체감 / 바람 |
+| 연인·친구 | 비 / 바람 / 체감 / 먼지 |
 
 형태:
 
@@ -457,6 +474,26 @@ horizontal scroll 가능
 적정
 ```
 
+먼지처럼 값과 상태가 같은 단어로 반복될 수 있는 지표는 status label을 행동형으로 바꾼다.
+
+```text
+좋음 / 좋음  (X)
+좋음 / 외출 가능  (O)
+보통 / 무난  (O)
+나쁨 / 마스크 체크  (O)
+```
+
+날씨 체크 그래픽 asset key:
+
+```text
+rain-low / rain-normal / rain-caution / rain-bad
+wind-low / wind-normal / wind-caution / wind-bad
+dust-good / dust-normal / dust-bad / dust-very-bad
+feels-like-cold / feels-like-cool / feels-like-comfort / feels-like-warm / feels-like-hot
+uv-low / uv-normal / uv-caution
+humidity-dry / humidity-comfort / humidity-humid
+```
+
 ## 8-3. Time Signal
 
 역할:
@@ -468,7 +505,7 @@ horizontal scroll 가능
 구성:
 
 ```text
-section title: 시간별 변화
+section title: 오늘 흐름
 right action: 더보기 >
 dot timeline
 오전 / 오후 / 저녁 또는 시간대 요약
@@ -593,6 +630,23 @@ Labels:
 콘텐츠를 날짜와 함께 저장한다.
 ```
 
+구성:
+
+```text
+content summary card
+- thumbnail
+- title
+- region/date
+- signal badge
+
+reminder option cards
+- icon
+- title
+- short description
+
+primary CTA
+```
+
 Title:
 
 ```text
@@ -614,6 +668,88 @@ CTA:
 저장하기
 ```
 
+비로그인:
+
+```text
+title: 로그인이 필요해요!
+message: 콘텐츠를 저장하려면 로그인이 필요해요.
+CTA: 로그인하기
+```
+
+---
+
+## 8-8. App Header
+
+역할:
+
+```text
+현재 위치, 데이터 기준 시각, 상황 선택, 알림, 마이페이지 진입을 제공한다.
+```
+
+구성:
+
+```text
+location label
+updatedAtLabel + refresh icon
+situation dropdown optional
+notification icon
+my page icon
+```
+
+원칙:
+
+- Header 오른쪽에는 햄버거 메뉴를 쓰지 않는다.
+- 마이페이지 아이콘은 `/mypage`로 직접 이동한다.
+- 알림 아이콘은 `/notifications`로 이동한다.
+- updatedAtLabel 옆 새로고침은 수동 데이터 재호출 버튼이다.
+- 전역 Sidebar Drawer는 MVP 메인 구조에서 사용하지 않는다.
+
+---
+
+## 8-9. Utility Screens
+
+대상:
+
+```text
+/mypage
+/location/select
+/settings
+/notifications
+```
+
+형태:
+
+```text
+Header
+large utility hero card
+section list card
+```
+
+마이페이지:
+
+```text
+계정 상태
+로그인/로그아웃
+저장한 콘텐츠
+알림·설정
+위치 설정
+```
+
+위치 설정:
+
+```text
+현재 적용 위치
+위치 권한 안내
+고정 지역 선택은 후속 단계
+```
+
+알림:
+
+```text
+현재는 빈 알림 상태
+저장 콘텐츠 알림은 후속 푸시 구현 단계에서 연결
+```
+
 ---
 
 # 9. Screen Patterns
@@ -624,12 +760,11 @@ CTA:
 
 ```text
 Header
-Situation selector
 Hero Signal Card
 Weather Check
 Time Signal
 Today Recommendations
-Search CTA
+More button
 ```
 
 섹션명:
@@ -637,9 +772,9 @@ Search CTA
 ```text
 오늘의 신호
 날씨 체크
-시간별 변화
+오늘 흐름
 오늘의 추천
-다른 콘텐츠도 볼까요?
+더보기
 ```
 
 ## 9-2. Discover
@@ -755,7 +890,7 @@ CTA: 날짜 정하기
 오늘은 무난해요
 비와 바람 부담이 크지 않아요.
 날씨 체크
-시간별 변화
+오늘 흐름
 오늘의 추천
 지역이나 콘텐츠 검색
 예보 기준
@@ -778,7 +913,7 @@ CTA: 날짜 정하기
 - Status는 색상만으로 구분하지 않고 텍스트 label을 포함한다.
 - Blue/green/orange 조합은 대비를 확인한다.
 - 작은 badge는 11px 이하로 내려가지 않는다.
-- 시간별 변화의 dot timeline은 텍스트 보조 label을 함께 제공한다.
+- 오늘 흐름의 dot timeline은 텍스트 보조 label을 함께 제공한다.
 
 ---
 
@@ -821,9 +956,14 @@ src/components/common/SignalDot.tsx
 src/components/common/SignalBadge.tsx
 src/components/common/ContentCard.tsx
 src/components/common/DateSelector.tsx
+src/components/layout/AppHeader.tsx
 src/features/today/TodayScreen.tsx
 src/features/discover/DiscoverScreen.tsx
-src/features/saved/SavedScreen.tsx
+src/features/savedContents/SavedScreen.tsx
+src/features/savedContents/SaveReminderSheet.tsx
+src/features/settings/UtilityScreens.tsx
+src/features/weatherCheck/WeatherCheckGraphic.tsx
+src/features/weatherCheck/weatherCheckUtils.ts
 ```
 
 ## 13-2. Notes

@@ -43,20 +43,76 @@ Place/POI는 위치 보조 정보이며, TODAY 카드의 중심은 `LocalContent
 
 ```text
 TODAY
-├── 위치/시간 헤더
-├── 오늘 날씨 Hero
-├── 핵심 지표
-│   ├── 강수확률
-│   ├── 강수량
-│   ├── 바람
-│   └── 미세먼지
-├── 오늘의 흐름
+├── Header
+│   ├── 현재 위치
+│   ├── 데이터 기준 시각 + 새로고침
+│   ├── 상황 선택
+│   ├── 알림
+│   └── 마이페이지
+├── Hero Signal Card
+│   ├── signal grade
+│   ├── 상황별 판단 문구
+│   └── 날씨 그래픽
+├── 날씨 체크
+│   └── 상황별 핵심 지표 4개
+├── 오늘 흐름
 ├── 오늘의 추천
 │   ├── specific_content
 │   └── curated_content
-├── 오늘/내일 일정 요약
-└── Discover CTA
+└── 더보기 버튼
 ```
+
+---
+
+# 3-1. Header 정책
+
+Header는 Home, Discover, Saved, Detail, 설정성 화면에서 같은 레이아웃을 사용한다.
+
+Home Header 구성:
+
+```text
+현재 위치 label
+updatedAtLabel
+새로고침 icon
+상황 선택 dropdown
+알림 icon
+마이페이지 icon
+```
+
+새로고침 동작:
+
+```text
+Header updatedAtLabel 오른쪽 새로고침
+→ Today payload cache 무시
+→ get_today_payload 재호출
+```
+
+MVP에서는 전역 Sidebar Drawer를 사용하지 않는다. Header 오른쪽의 마이페이지 아이콘은 `/mypage`로 직접 이동한다.
+
+---
+
+# 3-2. Data Cache 정책
+
+TODAY payload는 `localStorage` cache를 사용한다.
+
+```text
+key: ggg.todayPayload.v1
+TTL: 1시간
+```
+
+동작:
+
+```text
+TODAY 진입
+→ 1시간 이내 cache가 있으면 cache 사용
+→ cache가 없거나 만료되면 현재 위치 확인 후 get_today_payload 호출
+
+사용자 수동 새로고침
+→ cache 삭제
+→ get_today_payload 재호출
+```
+
+fallback mock 데이터는 실제 최신 시간처럼 보이지 않게 `예시 데이터 기준`으로 표시한다.
 
 ---
 
@@ -140,30 +196,90 @@ GOOD · 예보 기준
 
 ---
 
-# 7. Discover CTA
+# 7. 상황 조건 반영
 
-기본 CTA:
+Home Header의 상황 선택은 Hero와 오늘의 추천, 날씨 체크에 반영된다.
 
-```text
-가볼 만한 것 더 보기
-```
-
-상황별 CTA:
+상황 옵션:
 
 ```text
-오늘 가기 좋은 것 보기
-비 와도 괜찮은 곳 보기
-이번 주말 추천 보기
-아이와 갈 곳 보기
+일상
+액티비티
+휴식
+아이와
+연인·친구
 ```
 
-CTA는 Discover의 날짜/지역/상황을 prefill한다.
+Hero 문구는 `grade`와 `situation`을 함께 반영한다.
+
+```text
+일상: 오늘은 무난해요
+액티비티: 움직이기 좋은 흐름이에요
+휴식: 천천히 쉬기 괜찮아요
+아이와: 아이와 움직이기 괜찮아요
+연인·친구: 함께 보기 좋은 날이에요
+```
+
+오늘의 추천은 상황별 `targetModes` 기준으로 필터/정렬한다.
 
 ---
 
-# 8. 데이터 연동
+# 8. 날씨 체크
 
-TODAY payload는 기존 날씨 payload에 LocalContent 추천을 추가한다.
+날씨 체크는 Hero 결론의 근거를 보여준다. 모든 상황에서 같은 지표를 고정하지 않고, 상황별로 먼저 확인해야 하는 4개 지표를 보여준다.
+
+| 상황 | 날씨 체크 지표 |
+|---|---|
+| 일상 | 비 / 바람 / 먼지 / 체감 |
+| 액티비티 | 비 / 바람 / 자외선 / 체감 |
+| 휴식 | 먼지 / 습도 / 체감 / 비 |
+| 아이와 | 비 / 먼지 / 체감 / 바람 |
+| 연인·친구 | 비 / 바람 / 체감 / 먼지 |
+
+표기 원칙:
+
+```text
+label
+value
+status label
+```
+
+먼지는 value와 status를 중복하지 않는다.
+
+```text
+좋음 / 좋음  (X)
+좋음 / 외출 가능  (O)
+보통 / 무난  (O)
+나쁨 / 마스크 체크  (O)
+```
+
+날씨 체크 그래픽 asset:
+
+```text
+assets/weather_check_icons/optimized/weather-check-rain-*.png
+assets/weather_check_icons/optimized/weather-check-wind-*.png
+assets/weather_check_icons/optimized/weather-check-dust-*.png
+assets/weather_check_icons/optimized/weather-check-feels-like-*.png
+assets/weather_check_icons/optimized/weather-check-uv-*.png
+assets/weather_check_icons/optimized/weather-check-humidity-*.png
+```
+
+---
+
+# 9. 하단 더보기
+
+Home 하단에는 큰 Discover CTA 카드를 두지 않는다. `오늘의 추천` 아래에 작은 회색 `더보기` 버튼만 둔다.
+
+```text
+[더보기]
+→ /discover
+```
+
+---
+
+# 10. 데이터 연동
+
+TODAY payload는 기존 `get_today_payload` 호출 구조를 유지한다. 현재 프론트 MVP에서는 LocalContent 추천을 `mockLocalContents`에서 상황별로 필터링한다.
 
 ```json
 {
@@ -191,18 +307,22 @@ TODAY payload는 기존 날씨 payload에 LocalContent 추천을 추가한다.
 
 ---
 
-# 9. MVP 포함 / 제외
+# 11. MVP 포함 / 제외
 
 ## 포함
 
 ```text
 현재 위치 기준 날씨
-오늘의 흐름
+1시간 localStorage cache
+수동 새로고침
+상황별 Hero 문구
+상황별 날씨 체크
+오늘 흐름
 오늘의 추천 LocalContent 카드
 specific_content와 curated_content 혼합 노출
 콘텐츠 상세 연결
 저장 연결
-Discover prefill CTA
+더보기 버튼으로 Discover 연결
 ```
 
 ## 제외

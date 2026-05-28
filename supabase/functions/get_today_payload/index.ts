@@ -682,9 +682,24 @@ function gradeShortLabel(grade: GradeCode): string {
 
 function formatUpdatedAt(date: Date): string {
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekdays[date.getDay()]}) ${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes()
-  ).padStart(2, "0")} 기준`;
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "numeric",
+    day: "numeric",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(date);
+  const getPart = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  const month = getPart("month");
+  const day = getPart("day");
+  const weekday = getPart("weekday").replace("요일", "");
+  const hour = getPart("hour");
+  const minute = getPart("minute");
+
+  return `${month}월 ${day}일 (${weekdays.includes(weekday) ? weekday : weekdays[date.getDay()]}) ${hour}:${minute} 기준`;
 }
 
 function formatClock(value: string | null | undefined): string | null {

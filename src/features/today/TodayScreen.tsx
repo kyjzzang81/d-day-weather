@@ -33,12 +33,13 @@ import type { DateContext } from "../dateSignal/dateSignalTypes";
 import { LocalContentCard } from "../localContent/LocalContentCard";
 import { getLocalContentRecommendations } from "../localContent/localContentUtils";
 import type { LocalContent } from "../localContent/localContentTypes";
+import { writeLocationContextFromTodayPayload } from "../location/locationContext";
 import { SituationDropdown } from "../outingMode/OutingModeSheet";
 import { readOutingMode, writeOutingMode } from "../outingMode/outingModeStore";
 import type { OutingMode } from "../outingMode/outingModeTypes";
 import { SaveReminderSheet } from "../savedContents/SaveReminderSheet";
 import { WeatherCheckGraphic } from "../weatherCheck/WeatherCheckGraphic";
-import { getWeatherCheckItems } from "../weatherCheck/weatherCheckUtils";
+import { getWeatherCheckItemsByMode } from "../weatherCheck/weatherCheckUtils";
 import {
   loadTodayPayload,
   mockTodayPayload,
@@ -48,6 +49,29 @@ import {
 } from "./todayPayload";
 
 type SheetType = "time" | null;
+
+const modeRecommendationCopy: Record<OutingMode, { title: string; description: string }> = {
+  daily: {
+    title: "일상 기준 추천",
+    description: "가볍게 들르기 좋은 콘텐츠를 먼저 보여드려요.",
+  },
+  activity: {
+    title: "액티비티 기준 추천",
+    description: "움직임이 있는 콘텐츠와 야외 신호를 함께 봐요.",
+  },
+  rest: {
+    title: "휴식 기준 추천",
+    description: "실내와 느린 동선을 중심으로 골랐어요.",
+  },
+  with_child: {
+    title: "아이와 기준 추천",
+    description: "이동 부담과 실내 대안을 함께 봐요.",
+  },
+  date_friends: {
+    title: "연인·친구 기준 추천",
+    description: "전시, 팝업, 축제처럼 같이 보기 좋은 순서예요.",
+  },
+};
 type WeatherVisualCategory =
   | "clear_day"
   | "clear_night"
@@ -118,8 +142,9 @@ function getWeatherVisualCategory(payload: TodayPayload): WeatherVisualCategory 
   return "partly_cloudy_day";
 }
 
-const getHeroCopy = (grade: TodayPayload["grade"]) => {
-  switch (grade) {
+const getHeroCopy = (grade: TodayPayload["grade"], mode: OutingMode) => {
+  const gradeCopy = (() => {
+    switch (grade) {
     case "gorgeous":
       return {
         title: "오늘은 좋아요",
@@ -140,7 +165,30 @@ const getHeroCopy = (grade: TodayPayload["grade"]) => {
         title: "실내 중심이 좋아요",
         description: "날씨 변화가 있어 실내 콘텐츠가 편해요.",
       };
-  }
+    }
+  })();
+
+  const modeCopy: Record<OutingMode, Partial<typeof gradeCopy>> = {
+    daily: {},
+    activity: {
+      title: grade === "uhm" ? "무리하지 말고 움직여요" : "움직이기 좋은 흐름이에요",
+      description: "비, 바람, 자외선 신호를 먼저 확인했어요.",
+    },
+    rest: {
+      title: grade === "uhm" ? "실내 휴식이 편해요" : "천천히 쉬기 괜찮아요",
+      description: "먼지와 습도, 체감 부담을 중심으로 봤어요.",
+    },
+    with_child: {
+      title: grade === "uhm" ? "아이와는 실내가 좋아요" : "아이와 움직이기 괜찮아요",
+      description: "비, 먼지, 체감온도를 먼저 확인했어요.",
+    },
+    date_friends: {
+      title: grade === "uhm" ? "실내 약속이 좋아요" : "함께 보기 좋은 날이에요",
+      description: "이동 부담과 체감 날씨를 함께 봤어요.",
+    },
+  };
+
+  return { ...gradeCopy, ...modeCopy[mode] };
 };
 
 const getMetric = (metrics: Metric[], label: string) =>
@@ -214,13 +262,14 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [dateContext] = useState<DateContext>(() => getTodayDateContext());
 
-  const refreshTodayPayload = () => {
+  const refreshTodayPayload = (options?: { force?: boolean }) => {
     setIsLoading(true);
     setLoadError(null);
     setIsLocationError(false);
-    loadTodayPayload(undefined, { skipCache: true })
+    loadTodayPayload(undefined, { skipCache: options?.force ?? false })
       .then((nextPayload) => {
         setPayload(nextPayload);
+        writeLocationContextFromTodayPayload(nextPayload);
       })
       .catch((error: unknown) => {
         const locationError = isLocationUnavailableError(error);
@@ -246,22 +295,25 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
     writeOutingMode(nextMode);
   };
 
-  const heroCopy = getHeroCopy(payload.grade);
+  const heroCopy = getHeroCopy(payload.grade, mode);
   const weatherVisualCategory = getWeatherVisualCategory(payload);
   const weatherIconSrc = weatherIconByCategory[weatherVisualCategory];
-  const weatherCheckItems = getWeatherCheckItems(payload);
+  const weatherCheckItems = getWeatherCheckItemsByMode(payload, mode);
   const recommendations = useMemo(
-    () => getLocalContentRecommendations(mode).slice(0, 5),
+    () => getLocalContentRecommendations(mode).slice(0, 4),
     [mode],
   );
+  const recommendationCopy = modeRecommendationCopy[mode];
   const flowItems = payload.dayFlow.filter((item) => !["일출", "일몰"].includes(item.label)).slice(0, 4);
   const timeSignalCopy = getTimeSignalCopy(flowItems);
 
   return (
     <>
       <AppHeader
-        locationLabel="경기 파주시 금촌동"
-        updatedAtLabel="10:00 기준"
+        locationLabel={isLoading ? "현재 위치 확인 중" : payload.locationLabel}
+        updatedAtLabel={isLoading ? undefined : payload.updatedAtLabel}
+        onRefresh={() => refreshTodayPayload({ force: true })}
+        isRefreshing={isLoading}
         menuPlacement="right"
         onMenuClick={onMenuClick}
         beforeNotification={
@@ -293,7 +345,7 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
                     : "지금은 목업 데이터로 화면을 유지하고 있어요. 잠시 후 다시 시도할 수 있어요."
                 }
                 action={
-                  <PrimaryButton onClick={refreshTodayPayload}>
+                  <PrimaryButton onClick={() => refreshTodayPayload({ force: true })}>
                     다시 불러오기
                   </PrimaryButton>
                 }
@@ -362,10 +414,9 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
             <section className="sectionBlock">
               <div className="sectionTitleRow">
                 <h2>오늘의 추천</h2>
-                <button className="textButton" type="button" onClick={() => navigate("/discover")}>
-                  더 보기
-                </button>
+                <span className="sectionTinyLabel">{recommendationCopy.title}</span>
               </div>
+              <p className="sectionDescription">{recommendationCopy.description}</p>
               {savedMessage ? <p className="inlineStatusMessage">{savedMessage}</p> : null}
               <div className="localContentList">
                 {recommendations.map((content) => (
@@ -380,17 +431,10 @@ export function TodayScreen({ onMenuClick }: { onMenuClick: () => void }) {
               </div>
             </section>
 
-            <section className="discoverCtaCard signalSearchCtaCard">
-              <div>
-                <p>다른 콘텐츠도 볼까요?</p>
-                <strong>날짜와 지역에 맞는 신호를 찾아보세요.</strong>
-              </div>
-              <PrimaryButton
-                fullWidth={false}
-                onClick={() => navigate("/discover")}
-              >
-                지역·콘텐츠 검색
-              </PrimaryButton>
+            <section className="homeMoreSection" aria-label="추천 더보기">
+              <button type="button" onClick={() => navigate("/discover")}>
+                더보기
+              </button>
             </section>
           </>
         )}

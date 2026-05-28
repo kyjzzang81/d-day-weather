@@ -1,5 +1,25 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import contentTypeAllIcon from "../../../assets/content_type_icons/content-type-all.png";
+import contentTypeCultureComplexIcon from "../../../assets/content_type_icons/content-type-culture-complex.png";
+import contentTypeExhibitionIcon from "../../../assets/content_type_icons/content-type-exhibition.png";
+import contentTypeFairIcon from "../../../assets/content_type_icons/content-type-fair.png";
+import contentTypeFestivalIcon from "../../../assets/content_type_icons/content-type-festival.png";
+import contentTypeHikingIcon from "../../../assets/content_type_icons/content-type-hiking.png";
+import contentTypeKidsProgramIcon from "../../../assets/content_type_icons/content-type-kids-program.png";
+import contentTypeLeisureSportsIcon from "../../../assets/content_type_icons/content-type-leisure-sports.png";
+import contentTypeLibraryIcon from "../../../assets/content_type_icons/content-type-library.png";
+import contentTypeMarketIcon from "../../../assets/content_type_icons/content-type-market.png";
+import contentTypeOutdoorGameIcon from "../../../assets/content_type_icons/content-type-outdoor-game.png";
+import contentTypePerformanceIcon from "../../../assets/content_type_icons/content-type-performance.png";
+import contentTypePopupIcon from "../../../assets/content_type_icons/content-type-popup.png";
+import contentTypeProgramIcon from "../../../assets/content_type_icons/content-type-program.png";
+import contentTypeRunningIcon from "../../../assets/content_type_icons/content-type-running.png";
+import contentTypeSelectShopIcon from "../../../assets/content_type_icons/content-type-select-shop.png";
+import contentTypeSportsWatchingIcon from "../../../assets/content_type_icons/content-type-sports-watching.png";
+import contentTypeThemeCafeIcon from "../../../assets/content_type_icons/content-type-theme-cafe.png";
+import contentTypeTrekkingIcon from "../../../assets/content_type_icons/content-type-trekking.png";
+import contentTypeVillageTourIcon from "../../../assets/content_type_icons/content-type-village-tour.png";
 import { BottomSheet } from "../../components/common/BottomSheet";
 import { CategoryChip } from "../../components/common/CategoryChip";
 import { PrimaryButton } from "../../components/common/PrimaryButton";
@@ -19,30 +39,33 @@ import {
   type DiscoverFilterGroupId,
 } from "../localContent/localContentUtils";
 import type { ContentTypeTag, LocalContent } from "../localContent/localContentTypes";
+import { readLocationContext } from "../location/locationContext";
 import { SituationDropdown } from "../outingMode/OutingModeSheet";
 import { readOutingMode, writeOutingMode } from "../outingMode/outingModeStore";
 import type { OutingMode } from "../outingMode/outingModeTypes";
 import { SaveReminderSheet } from "../savedContents/SaveReminderSheet";
 
 const typeIconByValue: Record<string, string> = {
-  all: "●",
-  popup: "P",
-  festival: "F",
-  performance: "♪",
-  market: "M",
-  village_tour: "길",
-  fair: "E",
-  exhibition: "A",
-  program: "C",
-  trekking: "T",
-  hiking: "산",
-  running: "R",
-  leisure_sports: "L",
-  sports_watching: "S",
-  outdoor_game: "G",
-  theme_cafe: "☕",
-  culture_complex: "B",
-  select_shop: "샵",
+  all: contentTypeAllIcon,
+  popup: contentTypePopupIcon,
+  festival: contentTypeFestivalIcon,
+  performance: contentTypePerformanceIcon,
+  market: contentTypeMarketIcon,
+  village_tour: contentTypeVillageTourIcon,
+  fair: contentTypeFairIcon,
+  exhibition: contentTypeExhibitionIcon,
+  program: contentTypeProgramIcon,
+  library: contentTypeLibraryIcon,
+  kids_program: contentTypeKidsProgramIcon,
+  trekking: contentTypeTrekkingIcon,
+  hiking: contentTypeHikingIcon,
+  running: contentTypeRunningIcon,
+  leisure_sports: contentTypeLeisureSportsIcon,
+  sports_watching: contentTypeSportsWatchingIcon,
+  outdoor_game: contentTypeOutdoorGameIcon,
+  theme_cafe: contentTypeThemeCafeIcon,
+  culture_complex: contentTypeCultureComplexIcon,
+  select_shop: contentTypeSelectShopIcon,
 };
 
 const contentTypeFilterGroup = discoverTagFilterGroups.find(
@@ -77,6 +100,7 @@ export function DiscoverScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const [saveReminderOpen, setSaveReminderOpen] = useState(false);
   const [isSelectingSaveDate, setIsSelectingSaveDate] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [locationContext] = useState(() => readLocationContext());
 
   const results = useMemo(
     () => searchLocalContents(query, mode, activeFilters, dateContext),
@@ -154,8 +178,8 @@ export function DiscoverScreen({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <>
       <AppHeader
-        locationLabel="경기 파주시 금촌동"
-        updatedAtLabel="10:00 기준"
+        locationLabel={locationContext.locationLabel}
+        updatedAtLabel={locationContext.updatedAtLabel}
         menuPlacement="right"
         onMenuClick={onMenuClick}
         beforeNotification={
@@ -230,7 +254,11 @@ export function DiscoverScreen({ onMenuClick }: { onMenuClick: () => void }) {
                   onClick={() => selectFilter("contentTypeTags", option.value)}
                 >
                   <span className="contentTypePillIcon" aria-hidden="true">
-                    {typeIconByValue[option.value] ?? option.label.slice(0, 1)}
+                    {typeIconByValue[option.value] ? (
+                      <img src={typeIconByValue[option.value]} alt="" />
+                    ) : (
+                      option.label.slice(0, 1)
+                    )}
                   </span>
                   <span>{option.label}</span>
                 </button>
@@ -253,7 +281,7 @@ export function DiscoverScreen({ onMenuClick }: { onMenuClick: () => void }) {
                 <LocalContentCard
                   key={content.id}
                   content={content}
-                  basisLabel={dateContext.basisLabel}
+                  basisLabel={`${dateContext.basisLabel} · ${content.regionLabel} 날씨`}
                   onClick={() => navigate(`/content/${content.id}`)}
                   onSave={requestSave}
                 />

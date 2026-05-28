@@ -107,12 +107,12 @@ type CachedTodayPayload = {
 };
 
 const TODAY_PAYLOAD_CACHE_KEY = "ggg.todayPayload.v1";
-const TODAY_PAYLOAD_CACHE_TTL_MS = 30 * 60 * 1000;
+const TODAY_PAYLOAD_CACHE_TTL_MS = 60 * 60 * 1000;
 
 export const mockTodayPayload: TodayPayload = {
   source: "mock",
   locationLabel: "성수동",
-  updatedAtLabel: "6월 2일 (월) 09:30 기준",
+  updatedAtLabel: "예시 데이터 기준",
   grade: "gorgeous",
   reasons: ["가볍게 움직이기 좋아요", "비 가능성이 낮고 바람도 안정적이에요"],
   metrics: [

@@ -22,6 +22,7 @@ Phase F. SavedContent
 Phase G. Today Recommended Contents
 Phase H. Weather Signal Integration
 Phase I. QA / Migration Cleanup
+Phase J. Frontend UX Alignment
 ```
 
 ---
@@ -180,9 +181,12 @@ POI 연결 정보는 하위 섹션에 표시
 ```text
 저장 화면
 전체 / 예정 / 가보고 싶어요 / 다녀왔어요 탭
-user_saved_contents service
+MVP localStorage store: ggg.savedContents.v1
+운영 전환 시 user_saved_contents service
 wishlist / planned / visited 상태 전환
 날짜 정하기 CTA
+SaveReminderSheet
+Login Required Bottom Sheet
 ```
 
 ## 완료 기준
@@ -191,6 +195,7 @@ wishlist / planned / visited 상태 전환
 기존 장소 저장 타입과 테이블 의존 제거
 사용자 화면에서 위치 중심 저장 표현 제거
 콘텐츠 상세과 Discover에서 저장 가능
+비로그인 저장 시 로그인 유도 sheet 노출
 ```
 
 ---
@@ -204,10 +209,14 @@ TODAY에 `오늘의 추천` 섹션을 추가한다.
 ## 구현 범위
 
 ```text
-get_today_payload recommendedContents 추가
-현재 위치 기준 local_contents 후보 조회
+get_today_payload 호출 구조 유지
+Today payload 1시간 localStorage cache
+Header 새로고침 시 cache 무시
+상황별 Hero copy
+상황별 Weather Check 지표
+mockLocalContents 기반 추천 필터링
 LocalContentCard compact variant
-Discover prefill CTA
+작은 더보기 버튼으로 Discover 이동
 ```
 
 ## 완료 기준
@@ -216,6 +225,7 @@ Discover prefill CTA
 오늘 운영 중인 specific_content 노출 가능
 오늘 추천 가능한 curated_content 노출 가능
 TODAY에서 저장/상세 진입 가능
+상황 조건 변경 시 Hero/날씨 체크/추천 리스트 변화
 ```
 
 ---
@@ -262,4 +272,32 @@ Place 중심 잔여 표현과 타입 의존을 정리한다.
 기존 장소 추천 타입 제거 또는 LocalContent로 대체
 기존 장소 저장 타입 제거 또는 migration path 명시
 POI는 local_contents 하위 위치 정보로 유지
+```
+
+---
+
+# Phase J - Frontend UX Alignment
+
+## 목표
+
+현재 프론트 구현과 문서/UI 정책을 맞춘다.
+
+## 구현 범위
+
+```text
+전역 Sidebar Drawer 제거
+Header 마이페이지 icon → /mypage
+Header 알림 icon → /notifications
+/mypage /location/select /settings /notifications 구현
+SaveReminderSheet 디자인 시스템 반영
+weather_check_icons uv/humidity 그래픽 적용
+```
+
+## 완료 기준
+
+```text
+햄버거 메뉴가 사용자 화면에 노출되지 않음
+마이페이지와 알림은 Header icon으로 직접 진입
+자외선/습도 날씨 체크에 전용 그래픽 표시
+docs와 현재 route/component 구조 불일치 제거
 ```

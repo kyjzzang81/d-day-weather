@@ -8,6 +8,7 @@ import { getTodayDateContext } from "../dateSignal/dateSignalUtils";
 import type { DateContext } from "../dateSignal/dateSignalTypes";
 import { getLocalContentById, getLocalContentSubtitle } from "../localContent/localContentUtils";
 import type { LocalContent } from "../localContent/localContentTypes";
+import { readLocationContext } from "../location/locationContext";
 import { SaveReminderSheet } from "./SaveReminderSheet";
 import { markSavedContentVisited, readSavedContents, SAVED_CONTENTS_CHANGED_EVENT } from "./savedContentStore";
 import type { SavedContent, SavedContentStatus } from "./savedContentTypes";
@@ -25,6 +26,7 @@ export function SavedScreen({ onMenuClick }: { onMenuClick: () => void }) {
   const [activeTab, setActiveTab] = useState<"all" | SavedContentStatus>("all");
   const [saveTarget, setSaveTarget] = useState<LocalContent | null>(null);
   const [dateContext] = useState<DateContext>(() => getTodayDateContext());
+  const [locationContext] = useState(() => readLocationContext());
 
   useEffect(() => {
     const refresh = () => setItems(readSavedContents());
@@ -59,18 +61,12 @@ export function SavedScreen({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <>
       <AppHeader
-        locationLabel="경기 파주시 금촌동"
-        updatedAtLabel="10:00 기준"
+        locationLabel={locationContext.locationLabel}
+        updatedAtLabel={locationContext.updatedAtLabel}
         menuPlacement="right"
         onMenuClick={onMenuClick}
       />
       <main className="screenStack">
-        <section className="savedHeaderBlock">
-          <span className="eyebrowText">GGG Weather Signal</span>
-          <h1>저장</h1>
-          <p>날짜와 콘텐츠를 정해두고 다시 확인해요.</p>
-        </section>
-
         <div className="savedContentTabs" role="tablist" aria-label="저장 탭">
           {tabs.map((tab) => (
             <button

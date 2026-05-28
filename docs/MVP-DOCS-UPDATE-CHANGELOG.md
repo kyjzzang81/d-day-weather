@@ -1,5 +1,33 @@
 # ggg MVP Docs Update Changelog
 
+## 2026-05-28 Update — Frontend Implementation Alignment
+
+현재 구현된 프론트엔드 기준으로 Home, Header, 날씨 체크, 저장 바텀시트, 마이페이지/설정/알림 화면 문서를 정리했다.
+
+## 업데이트된 문서
+
+1. `TODAY-PRODUCT-SPEC-v2.0.md`
+2. `UI-DESIGN-SYSTEM-SPEC-v1.0.md`
+3. `NAVIGATION-ROUTING-SPEC-v1.0.md`
+4. `SIDEBAR-MYPAGE-SETTINGS-SPEC-v1.0.md`
+5. `SAVED-CONTENTS-PRODUCT-SPEC-v1.0.md`
+6. `MVP-DOCS-UPDATE-CHANGELOG.md`
+7. `CODEX-PHASE-EXECUTION-PLAN-v2.0.md`
+
+## 핵심 변경
+
+- 전역 Sidebar Drawer를 MVP 메인 진입 구조에서 제거하고, Header 오른쪽 `마이페이지` 아이콘으로 `/mypage`에 직접 이동하도록 정리했다.
+- Header는 위치/시간, 수동 새로고침, 상황 선택, 알림, 마이페이지 진입을 담는 공통 구조로 정의했다.
+- TODAY Hero는 상황 조건에 따라 문구가 달라지며, 날씨 체크도 상황별 핵심 지표를 다르게 보여준다.
+- 날씨 체크 지표에 `자외선`, `습도`를 추가하고 전용 그래픽 asset 키를 문서화했다.
+- `먼지`는 값과 상태가 중복되지 않도록 `좋음 / 외출 가능`처럼 value와 status label을 분리한다.
+- TODAY 진입 시 1시간 localStorage cache를 우선 사용하고, Header 새로고침은 cache를 무시하고 재호출한다.
+- 홈 하단 CTA는 큰 검색 카드 대신 작은 회색 `더보기` 버튼으로 단순화했다.
+- SaveReminderSheet는 콘텐츠 요약 카드, 신호 badge, 알림 옵션 카드 중심으로 재정리했다.
+- `/mypage`, `/location/select`, `/settings`, `/notifications`의 MVP 화면 역할과 현재 구현 범위를 반영했다.
+
+---
+
 ## 2026-05-27 Update — Region Tags for Discover
 
 Discover 기본 추천과 지역 필터를 위해 LocalContent의 지역 구조를 `regionLabel` 표시값에서 `content_regions` 기반 권역 모델로 확장했다.

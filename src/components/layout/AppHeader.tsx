@@ -1,13 +1,17 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Bell, MapPin, Menu, RefreshCw } from "lucide-react";
+import { Bell, MapPin, RefreshCw, UserRound } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { colors, spacing, typography } from "../../design/tokens";
 
 interface AppHeaderProps {
   title?: string;
   locationLabel?: string;
   updatedAtLabel?: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   menuPlacement?: "left" | "right";
   onMenuClick?: () => void;
+  onNotificationClick?: () => void;
   beforeNotification?: ReactNode;
 }
 
@@ -15,10 +19,13 @@ export function AppHeader({
   title,
   locationLabel,
   updatedAtLabel,
+  onRefresh,
+  isRefreshing = false,
   menuPlacement = "left",
-  onMenuClick,
+  onNotificationClick,
   beforeNotification,
 }: AppHeaderProps) {
+  const navigate = useNavigate();
   const headerStyle: CSSProperties = {
     minHeight: 64,
     flex: "0 0 64px",
@@ -32,10 +39,10 @@ export function AppHeader({
     <button
       className="iconButton"
       type="button"
-      aria-label="메뉴 열기"
-      onClick={onMenuClick}
+      aria-label="마이페이지"
+      onClick={() => navigate("/mypage")}
     >
-      <Menu aria-hidden="true" size={20} strokeWidth={2.2} />
+      <UserRound aria-hidden="true" size={20} strokeWidth={2.2} />
     </button>
   );
 
@@ -58,10 +65,21 @@ export function AppHeader({
               {locationLabel}
             </strong>
             {updatedAtLabel ? (
-              <span>
+              <button
+                className="appHeaderRefresh"
+                type="button"
+                onClick={onRefresh}
+                disabled={!onRefresh || isRefreshing}
+                aria-label="날씨 데이터 새로고침"
+              >
                 {updatedAtLabel}
-                <RefreshCw size={11} strokeWidth={2.4} aria-hidden="true" />
-              </span>
+                <RefreshCw
+                  className={isRefreshing ? "isSpinning" : undefined}
+                  size={11}
+                  strokeWidth={2.4}
+                  aria-hidden="true"
+                />
+              </button>
             ) : null}
           </div>
         ) : (
@@ -78,7 +96,12 @@ export function AppHeader({
       </div>
       <div className="appHeaderActions">
         {beforeNotification}
-        <button className="iconButton" type="button" aria-label="알림">
+        <button
+          className="iconButton"
+          type="button"
+          aria-label="알림"
+          onClick={onNotificationClick ?? (() => navigate("/notifications"))}
+        >
           <Bell aria-hidden="true" size={19} strokeWidth={2.2} />
         </button>
         {menuPlacement === "right" ? menuButton : null}

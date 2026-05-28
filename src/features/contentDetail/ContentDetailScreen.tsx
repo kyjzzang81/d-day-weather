@@ -22,6 +22,7 @@ import {
   getNaverMapUrl,
 } from "../localContent/localContentUtils";
 import type { LocalContent } from "../localContent/localContentTypes";
+import { readLocationContext } from "../location/locationContext";
 import { SaveReminderSheet } from "../savedContents/SaveReminderSheet";
 import { mockTodayPayload, type HourlyWeather } from "../today/todayPayload";
 import { WeatherCheckGraphic } from "../weatherCheck/WeatherCheckGraphic";
@@ -88,6 +89,7 @@ export function ContentDetailScreen({ onMenuClick }: { onMenuClick: () => void }
   const [mapSheetOpen, setMapSheetOpen] = useState(false);
   const [saveSheetOpen, setSaveSheetOpen] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [locationContext] = useState(() => readLocationContext());
   const dateLabel = getContentDateLabel(content);
   const sourceLabel = contentSourceLabels[content.contentSource];
   const typeLabel = contentTypeLabels[content.contentType];
@@ -97,8 +99,8 @@ export function ContentDetailScreen({ onMenuClick }: { onMenuClick: () => void }
   return (
     <>
       <AppHeader
-        locationLabel="경기 파주시 금촌동"
-        updatedAtLabel="10:00 기준"
+        locationLabel={locationContext.locationLabel}
+        updatedAtLabel={locationContext.updatedAtLabel}
         menuPlacement="right"
         onMenuClick={onMenuClick}
       />
@@ -126,7 +128,7 @@ export function ContentDetailScreen({ onMenuClick }: { onMenuClick: () => void }
 
         <section className="contentSignalCard">
           <span className="eyebrowText">{dateContext.label}의 신호</span>
-          <SignalBadge grade={content.grade} basisLabel={dateContext.basisLabel} />
+          <SignalBadge grade={content.grade} basisLabel={`${dateContext.basisLabel} · ${content.regionLabel} 날씨`} />
           <h2>{content.reason ?? "이 날짜에 무난하게 보기 좋아요."}</h2>
         </section>
 
